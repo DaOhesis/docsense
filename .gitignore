@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+*.db
+.pytest_cache/
+.ipynb_checkpoints/
+data/raw/
+data/samples/*
+!data/samples/.gitkeep
+models/
+*.pt
+*.pth
+.DS_Store
+.vscode/

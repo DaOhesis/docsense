@@ -1,0 +1,7 @@
+# Heavy ML/OCR deps - install only when you need them (Person A / B / C)
+# Tesseract also needs the system binary: https://github.com/tesseract-ocr/tesseract
+pytesseract>=0.3.10
+paddlepaddle>=2.6
+paddleocr>=2.7
+scikit-learn>=1.4
+torch>=2.2
