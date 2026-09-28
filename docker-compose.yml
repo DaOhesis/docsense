@@ -1,0 +1,47 @@
+services:
+
+  # ── PostgreSQL 16 ─────────────────────────────────────────────────────────
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER:     ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB:       ${POSTGRES_DB:-docint}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-docint}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── FastAPI application ───────────────────────────────────────────────────
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: "postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-docint}"
+      UPLOAD_DIR: /data/uploads
+    volumes:
+      - uploads:/data/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ── Streamlit review UI (optional – activate with: docker compose --profile ui up) ─
+  ui:
+    profiles: ["ui"]
+    build:
+      context: .
+      dockerfile: Dockerfile.ui
+    ports:
+      - "8501:8501"
+    environment:
+      API_URL: "http://api:8000"
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
+  uploads:

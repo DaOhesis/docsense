@@ -1,0 +1,17 @@
+FROM python:3.11-slim
+
+RUN groupadd --gid 1001 appgroup \
+ && useradd  --uid 1001 --gid 1001 --no-create-home appuser
+
+WORKDIR /app
+
+COPY requirements-ui.txt .
+RUN pip install --no-cache-dir -r requirements-ui.txt
+
+COPY src/docint/ui/ ./src/docint/ui/
+
+USER appuser
+
+EXPOSE 8501
+
+CMD ["streamlit", "run", "src/docint/ui/app.py", "--server.address=0.0.0.0", "--server.port=8501"]
