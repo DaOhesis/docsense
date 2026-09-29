@@ -194,10 +194,37 @@ def test_sroie_adapter():
     assert doc.fields["merchant"].value == "BOOK STORE"
 
 
-def test_load_labels():
+def test_cord_adapter():
+    from docint.evaluation.dataset_loader import convert_cord_sample
+    cord_data = {"merchant": "WARUNG KOPI", "total": "25000", "date": "12/05/2026"}
+    doc = convert_cord_sample("cord-1", "cord_01.png", cord_data)
+    assert doc.doc_type == DocType.receipt
+    assert doc.fields["merchant"].value == "WARUNG KOPI"
+    assert doc.fields["total"].value == "25000"
+
+
+def test_funsd_adapter():
+    from docint.evaluation.dataset_loader import convert_funsd_sample
+    funsd_data = {
+        "form": [
+            {"text": "Patient Name", "box": [10, 10, 100, 30], "label": "question"},
+            {"text": "John Doe", "box": [110, 10, 200, 30], "label": "answer"},
+        ]
+    }
+    doc = convert_funsd_sample("funsd-1", "funsd_01.png", funsd_data)
+    assert doc.doc_type == DocType.form
+    assert len(doc.ocr) == 2
+    assert "patient_name" in doc.fields
+
+
+def test_load_labels_and_benchmark_count():
     labels = load_labels("data/labels")
-    assert len(labels) >= 2
-    assert "sample_invoice_01.png" in labels or "sample_invoice_01" in labels
+    assert len(labels) >= 30
+    # Confirm invoices, receipts, and forms are all represented
+    doc_types = {doc.doc_type for doc in labels.values()}
+    assert DocType.invoice in doc_types
+    assert DocType.receipt in doc_types
+    assert DocType.form in doc_types
 
 
 # ---------------------------------------------------------------------------
