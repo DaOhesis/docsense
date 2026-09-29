@@ -1,0 +1,103 @@
+{
+  "doc_id": "rec-003",
+  "filename": "receipt_003.png",
+  "doc_type": "receipt",
+  "doc_type_conf": 0.97,
+  "ocr": [
+    {
+      "text": "SHELL EXPRESS FUEL",
+      "bbox": [
+        30.0,
+        10.0,
+        200.0,
+        35.0
+      ],
+      "conf": 0.99
+    },
+    {
+      "text": "DATE: 2026-01-25",
+      "bbox": [
+        30.0,
+        45.0,
+        160.0,
+        65.0
+      ],
+      "conf": 0.97
+    },
+    {
+      "text": "TOTAL: $52.00",
+      "bbox": [
+        30.0,
+        150.0,
+        180.0,
+        175.0
+      ],
+      "conf": 0.98
+    },
+    {
+      "text": "PAYMENT: Debit Card",
+      "bbox": [
+        30.0,
+        190.0,
+        190.0,
+        210.0
+      ],
+      "conf": 0.95
+    }
+  ],
+  "fields": {
+    "merchant": {
+      "value": "Shell Express Fuel",
+      "conf": 1.0,
+      "bbox": [
+        30.0,
+        10.0,
+        200.0,
+        35.0
+      ]
+    },
+    "vendor": {
+      "value": "Shell Express Fuel",
+      "conf": 1.0,
+      "bbox": [
+        30.0,
+        10.0,
+        200.0,
+        35.0
+      ]
+    },
+    "date": {
+      "value": "2026-01-25",
+      "conf": 1.0,
+      "bbox": [
+        30.0,
+        45.0,
+        160.0,
+        65.0
+      ]
+    },
+    "total": {
+      "value": "52.00",
+      "conf": 1.0,
+      "bbox": [
+        30.0,
+        150.0,
+        180.0,
+        175.0
+      ]
+    },
+    "payment_method": {
+      "value": "Debit Card",
+      "conf": 1.0,
+      "bbox": [
+        30.0,
+        190.0,
+        190.0,
+        210.0
+      ]
+    }
+  },
+  "tables": [],
+  "validation": [],
+  "needs_review": false
+}

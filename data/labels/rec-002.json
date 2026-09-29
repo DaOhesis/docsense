@@ -1,0 +1,103 @@
+{
+  "doc_id": "rec-002",
+  "filename": "receipt_002.png",
+  "doc_type": "receipt",
+  "doc_type_conf": 0.97,
+  "ocr": [
+    {
+      "text": "CORNER BAKERY & CAFE",
+      "bbox": [
+        30.0,
+        10.0,
+        200.0,
+        35.0
+      ],
+      "conf": 0.99
+    },
+    {
+      "text": "DATE: 2026-01-18",
+      "bbox": [
+        30.0,
+        45.0,
+        160.0,
+        65.0
+      ],
+      "conf": 0.97
+    },
+    {
+      "text": "TOTAL: $14.20",
+      "bbox": [
+        30.0,
+        150.0,
+        180.0,
+        175.0
+      ],
+      "conf": 0.98
+    },
+    {
+      "text": "PAYMENT: Cash",
+      "bbox": [
+        30.0,
+        190.0,
+        190.0,
+        210.0
+      ],
+      "conf": 0.95
+    }
+  ],
+  "fields": {
+    "merchant": {
+      "value": "Corner Bakery & Cafe",
+      "conf": 1.0,
+      "bbox": [
+        30.0,
+        10.0,
+        200.0,
+        35.0
+      ]
+    },
+    "vendor": {
+      "value": "Corner Bakery & Cafe",
+      "conf": 1.0,
+      "bbox": [
+        30.0,
+        10.0,
+        200.0,
+        35.0
+      ]
+    },
+    "date": {
+      "value": "2026-01-18",
+      "conf": 1.0,
+      "bbox": [
+        30.0,
+        45.0,
+        160.0,
+        65.0
+      ]
+    },
+    "total": {
+      "value": "14.20",
+      "conf": 1.0,
+      "bbox": [
+        30.0,
+        150.0,
+        180.0,
+        175.0
+      ]
+    },
+    "payment_method": {
+      "value": "Cash",
+      "conf": 1.0,
+      "bbox": [
+        30.0,
+        190.0,
+        190.0,
+        210.0
+      ]
+    }
+  },
+  "tables": [],
+  "validation": [],
+  "needs_review": false
+}

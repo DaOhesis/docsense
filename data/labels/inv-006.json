@@ -1,0 +1,164 @@
+{
+  "doc_id": "inv-006",
+  "filename": "invoice_006.png",
+  "doc_type": "invoice",
+  "doc_type_conf": 0.98,
+  "ocr": [
+    {
+      "text": "INVOICE",
+      "bbox": [
+        20.0,
+        20.0,
+        150.0,
+        50.0
+      ],
+      "conf": 0.99
+    },
+    {
+      "text": "CleanWater Solutions",
+      "bbox": [
+        20.0,
+        60.0,
+        250.0,
+        85.0
+      ],
+      "conf": 0.98
+    },
+    {
+      "text": "Invoice No: CW-5510",
+      "bbox": [
+        300.0,
+        20.0,
+        450.0,
+        45.0
+      ],
+      "conf": 0.97
+    },
+    {
+      "text": "Date: 2026-02-12",
+      "bbox": [
+        300.0,
+        50.0,
+        420.0,
+        75.0
+      ],
+      "conf": 0.97
+    },
+    {
+      "text": "Subtotal: 680.00",
+      "bbox": [
+        300.0,
+        300.0,
+        450.0,
+        325.0
+      ],
+      "conf": 0.96
+    },
+    {
+      "text": "Tax: 122.40",
+      "bbox": [
+        300.0,
+        330.0,
+        450.0,
+        355.0
+      ],
+      "conf": 0.96
+    },
+    {
+      "text": "Total: 802.40",
+      "bbox": [
+        300.0,
+        360.0,
+        450.0,
+        390.0
+      ],
+      "conf": 0.98
+    }
+  ],
+  "fields": {
+    "vendor": {
+      "value": "CleanWater Solutions",
+      "conf": 1.0,
+      "bbox": [
+        20.0,
+        60.0,
+        250.0,
+        85.0
+      ]
+    },
+    "invoice_no": {
+      "value": "CW-5510",
+      "conf": 1.0,
+      "bbox": [
+        300.0,
+        20.0,
+        450.0,
+        45.0
+      ]
+    },
+    "date": {
+      "value": "2026-02-12",
+      "conf": 1.0,
+      "bbox": [
+        300.0,
+        50.0,
+        420.0,
+        75.0
+      ]
+    },
+    "subtotal": {
+      "value": "680.00",
+      "conf": 1.0,
+      "bbox": [
+        300.0,
+        300.0,
+        450.0,
+        325.0
+      ]
+    },
+    "tax": {
+      "value": "122.40",
+      "conf": 1.0,
+      "bbox": [
+        300.0,
+        330.0,
+        450.0,
+        355.0
+      ]
+    },
+    "total": {
+      "value": "802.40",
+      "conf": 1.0,
+      "bbox": [
+        300.0,
+        360.0,
+        450.0,
+        390.0
+      ]
+    }
+  },
+  "tables": [
+    {
+      "headers": [
+        "item",
+        "qty",
+        "price"
+      ],
+      "rows": [
+        [
+          "Industrial Filter Cartridge",
+          "4",
+          "170.00"
+        ]
+      ]
+    }
+  ],
+  "validation": [
+    {
+      "rule": "total_matches",
+      "passed": true,
+      "message": ""
+    }
+  ],
+  "needs_review": false
+}

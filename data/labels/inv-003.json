@@ -1,0 +1,164 @@
+{
+  "doc_id": "inv-003",
+  "filename": "invoice_003.png",
+  "doc_type": "invoice",
+  "doc_type_conf": 0.98,
+  "ocr": [
+    {
+      "text": "INVOICE",
+      "bbox": [
+        20.0,
+        20.0,
+        150.0,
+        50.0
+      ],
+      "conf": 0.99
+    },
+    {
+      "text": "Quantum Logistics Corp",
+      "bbox": [
+        20.0,
+        60.0,
+        250.0,
+        85.0
+      ],
+      "conf": 0.98
+    },
+    {
+      "text": "Invoice No: QL-9921",
+      "bbox": [
+        300.0,
+        20.0,
+        450.0,
+        45.0
+      ],
+      "conf": 0.97
+    },
+    {
+      "text": "Date: 2026-01-20",
+      "bbox": [
+        300.0,
+        50.0,
+        420.0,
+        75.0
+      ],
+      "conf": 0.97
+    },
+    {
+      "text": "Subtotal: 2200.00",
+      "bbox": [
+        300.0,
+        300.0,
+        450.0,
+        325.0
+      ],
+      "conf": 0.96
+    },
+    {
+      "text": "Tax: 396.00",
+      "bbox": [
+        300.0,
+        330.0,
+        450.0,
+        355.0
+      ],
+      "conf": 0.96
+    },
+    {
+      "text": "Total: 2596.00",
+      "bbox": [
+        300.0,
+        360.0,
+        450.0,
+        390.0
+      ],
+      "conf": 0.98
+    }
+  ],
+  "fields": {
+    "vendor": {
+      "value": "Quantum Logistics Corp",
+      "conf": 1.0,
+      "bbox": [
+        20.0,
+        60.0,
+        250.0,
+        85.0
+      ]
+    },
+    "invoice_no": {
+      "value": "QL-9921",
+      "conf": 1.0,
+      "bbox": [
+        300.0,
+        20.0,
+        450.0,
+        45.0
+      ]
+    },
+    "date": {
+      "value": "2026-01-20",
+      "conf": 1.0,
+      "bbox": [
+        300.0,
+        50.0,
+        420.0,
+        75.0
+      ]
+    },
+    "subtotal": {
+      "value": "2200.00",
+      "conf": 1.0,
+      "bbox": [
+        300.0,
+        300.0,
+        450.0,
+        325.0
+      ]
+    },
+    "tax": {
+      "value": "396.00",
+      "conf": 1.0,
+      "bbox": [
+        300.0,
+        330.0,
+        450.0,
+        355.0
+      ]
+    },
+    "total": {
+      "value": "2596.00",
+      "conf": 1.0,
+      "bbox": [
+        300.0,
+        360.0,
+        450.0,
+        390.0
+      ]
+    }
+  },
+  "tables": [
+    {
+      "headers": [
+        "item",
+        "qty",
+        "price"
+      ],
+      "rows": [
+        [
+          "Freight Transit (Sea)",
+          "1",
+          "2200.00"
+        ]
+      ]
+    }
+  ],
+  "validation": [
+    {
+      "rule": "total_matches",
+      "passed": true,
+      "message": ""
+    }
+  ],
+  "needs_review": false
+}

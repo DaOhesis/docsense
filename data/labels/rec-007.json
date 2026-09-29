@@ -1,0 +1,103 @@
+{
+  "doc_id": "rec-007",
+  "filename": "receipt_007.png",
+  "doc_type": "receipt",
+  "doc_type_conf": 0.97,
+  "ocr": [
+    {
+      "text": "HOMEHARDWARE DEPOT",
+      "bbox": [
+        30.0,
+        10.0,
+        200.0,
+        35.0
+      ],
+      "conf": 0.99
+    },
+    {
+      "text": "DATE: 2026-03-05",
+      "bbox": [
+        30.0,
+        45.0,
+        160.0,
+        65.0
+      ],
+      "conf": 0.97
+    },
+    {
+      "text": "TOTAL: $185.90",
+      "bbox": [
+        30.0,
+        150.0,
+        180.0,
+        175.0
+      ],
+      "conf": 0.98
+    },
+    {
+      "text": "PAYMENT: Credit Card",
+      "bbox": [
+        30.0,
+        190.0,
+        190.0,
+        210.0
+      ],
+      "conf": 0.95
+    }
+  ],
+  "fields": {
+    "merchant": {
+      "value": "HomeHardware Depot",
+      "conf": 1.0,
+      "bbox": [
+        30.0,
+        10.0,
+        200.0,
+        35.0
+      ]
+    },
+    "vendor": {
+      "value": "HomeHardware Depot",
+      "conf": 1.0,
+      "bbox": [
+        30.0,
+        10.0,
+        200.0,
+        35.0
+      ]
+    },
+    "date": {
+      "value": "2026-03-05",
+      "conf": 1.0,
+      "bbox": [
+        30.0,
+        45.0,
+        160.0,
+        65.0
+      ]
+    },
+    "total": {
+      "value": "185.90",
+      "conf": 1.0,
+      "bbox": [
+        30.0,
+        150.0,
+        180.0,
+        175.0
+      ]
+    },
+    "payment_method": {
+      "value": "Credit Card",
+      "conf": 1.0,
+      "bbox": [
+        30.0,
+        190.0,
+        190.0,
+        210.0
+      ]
+    }
+  },
+  "tables": [],
+  "validation": [],
+  "needs_review": false
+}

@@ -1,0 +1,73 @@
+{
+  "doc_id": "form-001",
+  "filename": "form_001.png",
+  "doc_type": "form",
+  "doc_type_conf": 0.96,
+  "ocr": [
+    {
+      "text": "PATIENT INTAKE FORM",
+      "bbox": [
+        50.0,
+        20.0,
+        350.0,
+        50.0
+      ],
+      "conf": 0.99
+    },
+    {
+      "text": "ISSUED BY: Dr. Robert Smith Clinic",
+      "bbox": [
+        50.0,
+        60.0,
+        300.0,
+        85.0
+      ],
+      "conf": 0.96
+    },
+    {
+      "text": "DATE: 2026-01-08",
+      "bbox": [
+        50.0,
+        95.0,
+        200.0,
+        115.0
+      ],
+      "conf": 0.97
+    }
+  ],
+  "fields": {
+    "title": {
+      "value": "Patient Intake Form",
+      "conf": 1.0,
+      "bbox": [
+        50.0,
+        20.0,
+        350.0,
+        50.0
+      ]
+    },
+    "issuer": {
+      "value": "Dr. Robert Smith Clinic",
+      "conf": 1.0,
+      "bbox": [
+        50.0,
+        60.0,
+        300.0,
+        85.0
+      ]
+    },
+    "date": {
+      "value": "2026-01-08",
+      "conf": 1.0,
+      "bbox": [
+        50.0,
+        95.0,
+        200.0,
+        115.0
+      ]
+    }
+  },
+  "tables": [],
+  "validation": [],
+  "needs_review": false
+}
