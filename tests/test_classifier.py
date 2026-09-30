@@ -46,3 +46,18 @@ def test_layout_regions():
     
     assert len(regions["footer"]) == 1
     assert regions["footer"][0].text == "Page 1 of 1"
+
+from docint.classifier.ml_classifier import classify_ml
+
+def test_ml_classifier_invoice():
+    mock_tokens = [
+        OCRToken(text="Bill", bbox=[0, 0, 10, 10], conf=0.99),
+        OCRToken(text="To:", bbox=[12, 0, 20, 10], conf=0.99),
+        OCRToken(text="Subtotal", bbox=[0, 50, 40, 60], conf=0.99),
+        OCRToken(text="Tax", bbox=[0, 70, 30, 80], conf=0.99),
+    ]
+    
+    doc_type, confidence = classify_ml(mock_tokens)
+    
+    assert doc_type == DocType.invoice
+    assert 0.40 <= confidence <= 1.0
