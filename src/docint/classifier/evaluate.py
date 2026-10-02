@@ -1,6 +1,6 @@
 import os
 from sklearn.metrics import classification_report, confusion_matrix
-from docint.classifier.doc_classifier import classify as classify_baseline
+from docint.classifier.doc_classifier import classify_rules as classify_baseline
 from docint.classifier.ml_classifier import classify_ml
 from docint.schemas import OCRToken
 
