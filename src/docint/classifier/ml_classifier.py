@@ -1,11 +1,12 @@
+from pathlib import Path
+import joblib
+import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
-import numpy as np
 
 from docint.schemas import DocType, OCRToken
 
-# Starter training data
 DEFAULT_TRAINING_DATA = [
     ("invoice number bill to subtotal tax due date balance", DocType.invoice.value),
     ("tax invoice quantity unit price total amount payable", DocType.invoice.value),
@@ -21,8 +22,6 @@ DEFAULT_TRAINING_DATA = [
 class MLDocumentClassifier:
     def __init__(self, confidence_threshold: float = 0.40):
         self.confidence_threshold = confidence_threshold
-        # 1. Remove stop_words="english" so words like "bill" aren't deleted
-        # 2. Set C=10.0 so the model can express higher confidence on small training sets
         self.model = Pipeline([
             ("tfidf", TfidfVectorizer(lowercase=True)),
             ("clf", LogisticRegression(C=10.0))
@@ -32,6 +31,19 @@ class MLDocumentClassifier:
     def train(self, texts: list[str], labels: list[str]) -> None:
         """Trains the TF-IDF + Logistic Regression pipeline on labeled text."""
         self.model.fit(texts, labels)
+        self.is_trained = True
+
+    def save(self, filepath: str | Path) -> None:
+        """Saves the trained Scikit-learn pipeline to disk."""
+        if not self.is_trained:
+            raise ValueError("Cannot save an untrained model.")
+        path = Path(filepath)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        joblib.dump(self.model, path)
+
+    def load(self, filepath: str | Path) -> None:
+        """Loads a pre-trained Scikit-learn pipeline from disk."""
+        self.model = joblib.load(filepath)
         self.is_trained = True
 
     def classify(self, tokens: list[OCRToken]) -> tuple[DocType, float]:
@@ -49,7 +61,6 @@ class MLDocumentClassifier:
         full_text = " ".join([t.text for t in tokens])
 
         probabilities = self.model.predict_proba([full_text])[0]
-        
         max_index = int(np.argmax(probabilities))
         best_confidence = float(probabilities[max_index])
         best_label = self.model.classes_[max_index]

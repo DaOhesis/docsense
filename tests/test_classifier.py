@@ -61,3 +61,43 @@ def test_ml_classifier_invoice():
     
     assert doc_type == DocType.invoice
     assert 0.40 <= confidence <= 1.0
+
+from docint.classifier.layout_analyzer import detect_key_value_pairs, detect_table_rows
+from docint.classifier.ml_classifier import MLDocumentClassifier
+
+def test_layout_kv_and_tables():
+    mock_tokens = [
+        # Key-Value pair on line y=100
+        OCRToken(text="Date:", bbox=[10, 100, 50, 115], conf=0.99),
+        OCRToken(text="2026-10-02", bbox=[60, 100, 140, 115], conf=0.99),
+        
+        # Table row (3 columns) on line y=200
+        OCRToken(text="ItemA", bbox=[10, 200, 60, 215], conf=0.99),
+        OCRToken(text="2", bbox=[150, 200, 165, 215], conf=0.99),
+        OCRToken(text="$20.00", bbox=[250, 200, 300, 215], conf=0.99),
+    ]
+    
+    kv = detect_key_value_pairs(mock_tokens)
+    tables = detect_table_rows(mock_tokens, min_columns=3)
+    
+    assert kv == {"Date": "2026-10-02"}
+    assert len(tables) == 1
+    assert tables[0] == ["ItemA", "2", "$20.00"]
+
+
+def test_ml_save_and_load(tmp_path):
+    clf = MLDocumentClassifier()
+    # Trigger training and save to a temporary file
+    token = [OCRToken(text="Invoice Subtotal Tax", bbox=[0, 0, 10, 10], conf=0.99)]
+    clf.classify(token)
+    
+    model_file = tmp_path / "model.joblib"
+    clf.save(model_file)
+    
+    # Load into a brand new classifier instance
+    loaded_clf = MLDocumentClassifier()
+    loaded_clf.load(model_file)
+    doc_type, conf = loaded_clf.classify(token)
+    
+    assert doc_type == DocType.invoice
+    assert conf >= 0.40
