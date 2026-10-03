@@ -1,23 +1,15 @@
 """
-fields.py
----------
-Field extraction. Two strategies, combined:
+Field Extraction Module
 
-1. Regex-based: works well for self-describing values (dates, amounts, GST
-   numbers, emails) regardless of where they sit on the page.
-2. Label-anchor: for values that only make sense next to a label
-   ("Vendor Name: ..."), find the label via OCR bounding boxes and grab the
-   text immediately following it on the same line.
-
-Document type is NOT decided here -- per the team contract, doc_type
-arrives as an argument from B's classify() stage.
+Extracts key-value document fields using a hybrid approach combining
+regex pattern matching and spatial label anchoring.
 """
 
 import re
 from typing import List, Dict, Optional
 from ._tokens import OCRWord
 
-# Each pattern's FIRST capturing group is the extracted value.
+
 REGEX_PATTERNS: Dict[str, str] = {
     "invoice_no": r"(?:invoice\s*(?:no\.?|number|#)\s*[:\-]?\s*)([A-Za-z0-9\-\/]+)",
     "receipt_no": r"(?:receipt\s*(?:no\.?|number|#)\s*[:\-]?\s*)([A-Za-z0-9\-\/]+)",
@@ -30,8 +22,7 @@ REGEX_PATTERNS: Dict[str, str] = {
     "phone": r"(?:\+?\d{1,3}[-.\s]?)?(\d{10})",
 }
 
-# label phrase -> output field name. Matched case-insensitively against
-# consecutive OCR words joined together on the same visual line.
+
 LABEL_FIELD_MAP: Dict[str, str] = {
     "vendor name": "vendor",
     "bill to": "customer",
@@ -53,8 +44,6 @@ def _extract_by_regex(full_text: str) -> Dict[str, Optional[str]]:
     for field_name, pattern in REGEX_PATTERNS.items():
         match = re.search(pattern, text_lower, flags=re.IGNORECASE)
         if match:
-            # Re-extract from the ORIGINAL text at the matched span to
-            # preserve casing (important for emails, IDs, etc).
             start, end = match.span(1)
             results[field_name] = full_text[start:end]
         else:

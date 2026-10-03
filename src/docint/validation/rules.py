@@ -1,20 +1,13 @@
 """
-rules.py
---------
-Validation: required-field checks per document type, plus cross-field
-business rules (e.g. does the invoice total equal the sum of line items).
+Validation Rules Engine
 
-Add new checks to RULES_BY_TYPE or the standalone check_* functions below --
-per TEAM_GUIDE.md, this is the file the guide means by "add to RULES in
-validation/rules.py".
+Applies business logic, required field checks, and arithmetic consistency checks on extracted data.
 """
 
 import re
 from datetime import datetime
 from typing import List, Dict, Any, Tuple
 
-# Required fields per document type. Keys must match the field names
-# extraction/fields.py actually produces (see REGEX_PATTERNS / LABEL_FIELD_MAP).
 REQUIRED_FIELDS: Dict[str, List[str]] = {
     "invoice": ["invoice_no", "date", "total"],
     "receipt": ["receipt_no", "date", "total"],
@@ -109,10 +102,8 @@ def check_line_items_sum_to_total(fields: Dict[str, Any], table: List[Dict[str, 
     return errors
 
 
-# Rules that apply regardless of document type
 COMMON_RULES = [check_date_validity]
 
-# Rules specific to one document type
 RULES_BY_TYPE = {
     "invoice": [check_gstin_format, check_line_items_sum_to_total],
 }
@@ -130,17 +121,7 @@ def _run_checks(doc_type: str, fields: Dict[str, Any], table: List[Dict[str, str
 
 def validate(doc_type: str, fields: Dict[str, Dict[str, Any]],
              tables: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], bool]:
-    """
-    THE CONTRACT FUNCTION. TEAM_GUIDE.md lists validate(fields) with one
-    argument, but the actual rules (line items = total, required fields per
-    type) need doc_type and the table too -- raise this gap with your team;
-    this signature is the practical fix until everyone agrees on schemas.py.
-
-    fields: contract-shaped {name: {"value":..., "conf":..., "bbox":...}}
-    tables: contract-shaped [{"headers": [...], "rows": [[...]]}]
-
-    Returns (list[ValidationResult], needs_review) per the contract.
-    """
+   
     plain_fields = {name: f["value"] for name, f in fields.items()}
     plain_table = []
     if tables:
@@ -153,4 +134,4 @@ def validate(doc_type: str, fields: Dict[str, Dict[str, Any]],
     if not results:
         results = [{"rule": "validation", "passed": True, "message": ""}]
 
-    return results, len(error_messages) > 0
+    return results, len(error_messages) > 0 

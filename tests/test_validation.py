@@ -1,7 +1,7 @@
 """
 test_validation.py
--------------------
-Run with: PYTHONPATH=src pytest tests/test_validation.py
+
+Unit tests for business rule validation module using sample field and table fixtures.
 """
 
 import json

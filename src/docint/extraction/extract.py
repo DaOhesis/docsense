@@ -1,18 +1,9 @@
 """
-extract.py
-----------
-THE public interface for this package. Everyone else (the lead's
-pipeline.py, D's API layer, tests) should only ever import extract() from
-here -- fields.py, tables.py and _tokens.py are implementation details.
+Extraction Pipeline Orchestrator
 
-Matches TEAM_GUIDE.md section 2 exactly:
-    extract(doc_type, tokens) -> (dict[str, ExtractedField], list[Table])
-
-doc_type: decided upstream by B's classify() -- this function does NOT
-          classify documents, only extracts fields/tables from one.
-tokens:   list[OCRToken] in contract format, e.g.
-          {"text": "INV-1024", "bbox": [10, 50, 120, 80], "conf": 0.95}
+Serves as the primary public entry point for Part C field and table extraction.
 """
+
 
 from typing import List, Dict, Any, Tuple
 from ._tokens import tokens_to_words
@@ -21,13 +12,7 @@ from .tables import extract_table
 
 
 def _fields_to_contract_shape(fields: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
-    """
-    {name: value} -> {name: {"value":..., "conf":..., "bbox": None}}
-
-    NOTE: per-field confidence/bbox aren't tracked yet -- conf here is a
-    placeholder (0.9 if found, 0.0 if not). A good later improvement: carry
-    through the OCR confidence of whichever word(s) produced the value.
-    """
+    
     return {
         name: {"value": value, "conf": 0.9 if value else 0.0, "bbox": None}
         for name, value in fields.items()

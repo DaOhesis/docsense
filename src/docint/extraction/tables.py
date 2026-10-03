@@ -1,14 +1,7 @@
 """
-tables.py
----------
-Reconstructs tables (e.g. invoice line items) from OCR word bounding boxes.
+Table Extraction Module
 
-Approach:
-1. Group words into visual lines (rows) by similar y-position.
-2. Find the header row by matching common table-header keywords.
-3. Use the header words' x-positions as column boundaries.
-4. Assign words in subsequent rows to the nearest header column by
-   x-center, then join words in the same column into one cell string.
+Reconstructs structured line-item tabular data from OCR tokens using 2D spatial alignment.
 """
 
 from typing import List, Dict, Optional

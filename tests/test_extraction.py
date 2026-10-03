@@ -1,10 +1,7 @@
 """
-test_extraction.py
--------------------
-Run with: PYTHONPATH=src pytest tests/test_extraction.py
-
-Uses fixture files in tests/fixtures/ -- OCR tokens in the exact contract
-format, so these tests reflect real integration, not toy data.
+ test_extraction.py
+ 
+ Unit tests for field and table extraction module using sample OCR fixtures.  
 """
 
 import json  

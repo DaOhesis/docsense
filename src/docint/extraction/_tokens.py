@@ -1,14 +1,8 @@
 """
-_tokens.py
-----------
-Internal helper: converts the team's contract-format OCRToken dicts
-(bbox as [x0,y0,x1,y1], conf 0-1) into a convenient OCRWord object for the
-extraction logic to work with. This stays private to the extraction package
--- nobody outside src/docint/extraction/ needs to know it exists.
+Token Normalization Module
 
-Leading underscore in the filename signals "internal, not part of the
-public interface" -- fields.py and tables.py use this, but extract.py is
-the only thing other modules should import from.
+Converts raw OCR token dictionaries into standardized OCRWord objects
+to ensure consistent data access across the extraction pipeline.
 """
 
 from dataclasses import dataclass
