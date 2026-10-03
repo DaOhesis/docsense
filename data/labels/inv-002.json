@@ -1,0 +1,164 @@
+{
+  "doc_id": "inv-002",
+  "filename": "invoice_002.png",
+  "doc_type": "invoice",
+  "doc_type_conf": 0.98,
+  "ocr": [
+    {
+      "text": "INVOICE",
+      "bbox": [
+        20.0,
+        20.0,
+        150.0,
+        50.0
+      ],
+      "conf": 0.99
+    },
+    {
+      "text": "CloudScale Hosting Ltd",
+      "bbox": [
+        20.0,
+        60.0,
+        250.0,
+        85.0
+      ],
+      "conf": 0.98
+    },
+    {
+      "text": "Invoice No: CS-88910",
+      "bbox": [
+        300.0,
+        20.0,
+        450.0,
+        45.0
+      ],
+      "conf": 0.97
+    },
+    {
+      "text": "Date: 2026-01-15",
+      "bbox": [
+        300.0,
+        50.0,
+        420.0,
+        75.0
+      ],
+      "conf": 0.97
+    },
+    {
+      "text": "Subtotal: 450.00",
+      "bbox": [
+        300.0,
+        300.0,
+        450.0,
+        325.0
+      ],
+      "conf": 0.96
+    },
+    {
+      "text": "Tax: 81.00",
+      "bbox": [
+        300.0,
+        330.0,
+        450.0,
+        355.0
+      ],
+      "conf": 0.96
+    },
+    {
+      "text": "Total: 531.00",
+      "bbox": [
+        300.0,
+        360.0,
+        450.0,
+        390.0
+      ],
+      "conf": 0.98
+    }
+  ],
+  "fields": {
+    "vendor": {
+      "value": "CloudScale Hosting Ltd",
+      "conf": 1.0,
+      "bbox": [
+        20.0,
+        60.0,
+        250.0,
+        85.0
+      ]
+    },
+    "invoice_no": {
+      "value": "CS-88910",
+      "conf": 1.0,
+      "bbox": [
+        300.0,
+        20.0,
+        450.0,
+        45.0
+      ]
+    },
+    "date": {
+      "value": "2026-01-15",
+      "conf": 1.0,
+      "bbox": [
+        300.0,
+        50.0,
+        420.0,
+        75.0
+      ]
+    },
+    "subtotal": {
+      "value": "450.00",
+      "conf": 1.0,
+      "bbox": [
+        300.0,
+        300.0,
+        450.0,
+        325.0
+      ]
+    },
+    "tax": {
+      "value": "81.00",
+      "conf": 1.0,
+      "bbox": [
+        300.0,
+        330.0,
+        450.0,
+        355.0
+      ]
+    },
+    "total": {
+      "value": "531.00",
+      "conf": 1.0,
+      "bbox": [
+        300.0,
+        360.0,
+        450.0,
+        390.0
+      ]
+    }
+  },
+  "tables": [
+    {
+      "headers": [
+        "item",
+        "qty",
+        "price"
+      ],
+      "rows": [
+        [
+          "Dedicated Server Tier 2",
+          "1",
+          "450.00"
+        ]
+      ]
+    }
+  ],
+  "validation": [
+    {
+      "rule": "total_matches",
+      "passed": true,
+      "message": ""
+    }
+  ],
+  "needs_review": false
+}

@@ -1,0 +1,164 @@
+{
+  "doc_id": "inv-014",
+  "filename": "invoice_014.png",
+  "doc_type": "invoice",
+  "doc_type_conf": 0.98,
+  "ocr": [
+    {
+      "text": "INVOICE",
+      "bbox": [
+        20.0,
+        20.0,
+        150.0,
+        50.0
+      ],
+      "conf": 0.99
+    },
+    {
+      "text": "Summit Facilities Management",
+      "bbox": [
+        20.0,
+        60.0,
+        250.0,
+        85.0
+      ],
+      "conf": 0.98
+    },
+    {
+      "text": "Invoice No: SFM-710",
+      "bbox": [
+        300.0,
+        20.0,
+        450.0,
+        45.0
+      ],
+      "conf": 0.97
+    },
+    {
+      "text": "Date: 2026-04-05",
+      "bbox": [
+        300.0,
+        50.0,
+        420.0,
+        75.0
+      ],
+      "conf": 0.97
+    },
+    {
+      "text": "Subtotal: 2800.00",
+      "bbox": [
+        300.0,
+        300.0,
+        450.0,
+        325.0
+      ],
+      "conf": 0.96
+    },
+    {
+      "text": "Tax: 504.00",
+      "bbox": [
+        300.0,
+        330.0,
+        450.0,
+        355.0
+      ],
+      "conf": 0.96
+    },
+    {
+      "text": "Total: 3304.00",
+      "bbox": [
+        300.0,
+        360.0,
+        450.0,
+        390.0
+      ],
+      "conf": 0.98
+    }
+  ],
+  "fields": {
+    "vendor": {
+      "value": "Summit Facilities Management",
+      "conf": 1.0,
+      "bbox": [
+        20.0,
+        60.0,
+        250.0,
+        85.0
+      ]
+    },
+    "invoice_no": {
+      "value": "SFM-710",
+      "conf": 1.0,
+      "bbox": [
+        300.0,
+        20.0,
+        450.0,
+        45.0
+      ]
+    },
+    "date": {
+      "value": "2026-04-05",
+      "conf": 1.0,
+      "bbox": [
+        300.0,
+        50.0,
+        420.0,
+        75.0
+      ]
+    },
+    "subtotal": {
+      "value": "2800.00",
+      "conf": 1.0,
+      "bbox": [
+        300.0,
+        300.0,
+        450.0,
+        325.0
+      ]
+    },
+    "tax": {
+      "value": "504.00",
+      "conf": 1.0,
+      "bbox": [
+        300.0,
+        330.0,
+        450.0,
+        355.0
+      ]
+    },
+    "total": {
+      "value": "3304.00",
+      "conf": 1.0,
+      "bbox": [
+        300.0,
+        360.0,
+        450.0,
+        390.0
+      ]
+    }
+  },
+  "tables": [
+    {
+      "headers": [
+        "item",
+        "qty",
+        "price"
+      ],
+      "rows": [
+        [
+          "HVAC Quarterly Maintenance",
+          "1",
+          "2800.00"
+        ]
+      ]
+    }
+  ],
+  "validation": [
+    {
+      "rule": "total_matches",
+      "passed": true,
+      "message": ""
+    }
+  ],
+  "needs_review": false
+}

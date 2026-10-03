@@ -1,0 +1,33 @@
+{
+  "doc_id": "gt-inv-001",
+  "filename": "sample_invoice_01.png",
+  "doc_type": "invoice",
+  "doc_type_conf": 1.0,
+  "ocr": [
+    {"text": "INVOICE", "bbox": [10.0, 10.0, 120.0, 40.0], "conf": 0.99},
+    {"text": "INV-1024", "bbox": [10.0, 50.0, 120.0, 80.0], "conf": 0.98},
+    {"text": "Date: 2026-09-01", "bbox": [10.0, 90.0, 150.0, 110.0], "conf": 0.95},
+    {"text": "Vendor: ACME Traders", "bbox": [10.0, 120.0, 200.0, 140.0], "conf": 0.95},
+    {"text": "Subtotal: 1000.00", "bbox": [10.0, 250.0, 180.0, 270.0], "conf": 0.96},
+    {"text": "Tax: 180.00", "bbox": [10.0, 275.0, 150.0, 295.0], "conf": 0.96},
+    {"text": "Total: 1180.00", "bbox": [10.0, 300.0, 200.0, 330.0], "conf": 0.97}
+  ],
+  "fields": {
+    "invoice_no": {"value": "INV-1024", "conf": 1.0, "bbox": [10.0, 50.0, 120.0, 80.0]},
+    "date": {"value": "2026-09-01", "conf": 1.0, "bbox": [10.0, 90.0, 150.0, 110.0]},
+    "vendor": {"value": "ACME Traders", "conf": 1.0, "bbox": [10.0, 120.0, 200.0, 140.0]},
+    "subtotal": {"value": "1000.00", "conf": 1.0, "bbox": [10.0, 250.0, 180.0, 270.0]},
+    "tax": {"value": "180.00", "conf": 1.0, "bbox": [10.0, 275.0, 150.0, 295.0]},
+    "total": {"value": "1180.00", "conf": 1.0, "bbox": [10.0, 300.0, 200.0, 330.0]}
+  },
+  "tables": [
+    {
+      "headers": ["item", "qty", "price"],
+      "rows": [["Widget", "10", "100.00"]]
+    }
+  ],
+  "validation": [
+    {"rule": "total_matches", "passed": true, "message": ""}
+  ],
+  "needs_review": false
+}

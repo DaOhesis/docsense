@@ -1,0 +1,73 @@
+{
+  "doc_id": "cert-002",
+  "filename": "cert_002.png",
+  "doc_type": "certificate",
+  "doc_type_conf": 0.96,
+  "ocr": [
+    {
+      "text": "CERTIFICATE OF COMPLIANCE",
+      "bbox": [
+        50.0,
+        20.0,
+        350.0,
+        50.0
+      ],
+      "conf": 0.99
+    },
+    {
+      "text": "ISSUED BY: Global Quality Assurance",
+      "bbox": [
+        50.0,
+        60.0,
+        300.0,
+        85.0
+      ],
+      "conf": 0.96
+    },
+    {
+      "text": "DATE: 2026-02-28",
+      "bbox": [
+        50.0,
+        95.0,
+        200.0,
+        115.0
+      ],
+      "conf": 0.97
+    }
+  ],
+  "fields": {
+    "title": {
+      "value": "Certificate of Compliance",
+      "conf": 1.0,
+      "bbox": [
+        50.0,
+        20.0,
+        350.0,
+        50.0
+      ]
+    },
+    "issuer": {
+      "value": "Global Quality Assurance",
+      "conf": 1.0,
+      "bbox": [
+        50.0,
+        60.0,
+        300.0,
+        85.0
+      ]
+    },
+    "date": {
+      "value": "2026-02-28",
+      "conf": 1.0,
+      "bbox": [
+        50.0,
+        95.0,
+        200.0,
+        115.0
+      ]
+    }
+  },
+  "tables": [],
+  "validation": [],
+  "needs_review": false
+}

@@ -1,0 +1,21 @@
+{
+  "doc_id": "gt-rec-001",
+  "filename": "sample_receipt_01.png",
+  "doc_type": "receipt",
+  "doc_type_conf": 1.0,
+  "ocr": [
+    {"text": "GROCERY MART", "bbox": [20.0, 10.0, 180.0, 35.0], "conf": 0.99},
+    {"text": "Date: 15/09/2026", "bbox": [20.0, 50.0, 150.0, 70.0], "conf": 0.97},
+    {"text": "TOTAL: 42.50", "bbox": [20.0, 180.0, 140.0, 205.0], "conf": 0.98},
+    {"text": "VISA CARD", "bbox": [20.0, 220.0, 120.0, 240.0], "conf": 0.95}
+  ],
+  "fields": {
+    "merchant": {"value": "Grocery Mart", "conf": 1.0, "bbox": [20.0, 10.0, 180.0, 35.0]},
+    "date": {"value": "2026-09-15", "conf": 1.0, "bbox": [20.0, 50.0, 150.0, 70.0]},
+    "total": {"value": "42.50", "conf": 1.0, "bbox": [20.0, 180.0, 140.0, 205.0]},
+    "payment_method": {"value": "VISA CARD", "conf": 1.0, "bbox": [20.0, 220.0, 120.0, 240.0]}
+  },
+  "tables": [],
+  "validation": [],
+  "needs_review": false
+}
