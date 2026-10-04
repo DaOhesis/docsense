@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 """
 Validation Rules Engine
 
@@ -136,13 +136,7 @@ def validate(doc_type: str, fields: Dict[str, Dict[str, Any]],
         results = [{"rule": "validation", "passed": True, "message": ""}]
 
     return results, len(error_messages) > 0 
-=======
-"""OWNER: Person C  |  Branch prefix: feature/validation-*
 
-Each rule is a function: fields -> ValidationResult. Add new rules to RULES.
-TODO ideas: date format, required fields per doc type, GSTIN/ID format,
-            line items sum == subtotal, duplicate invoice numbers.
-"""
 from typing import Callable
 
 from docint.schemas import ExtractedField, ValidationResult
@@ -173,4 +167,3 @@ def validate(fields: dict[str, ExtractedField]) -> tuple[list[ValidationResult],
     results = [rule(fields) for rule in RULES]
     needs_review = any(not r.passed for r in results) or any(f.conf < LOW_CONF for f in fields.values())
     return results, needs_review
->>>>>>> origin/main
