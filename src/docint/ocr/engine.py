@@ -1,18 +1,40 @@
-"""OWNER: Person A  |  Branch prefix: feature/ocr-*
+"""OWNER: Person A  |  Branch prefix: feature/ocr-*"""
 
-TODO:
-  - wrap Tesseract and PaddleOCR behind the same interface
-  - benchmark both on data/samples and record results in docs/ocr_benchmark.md
-"""
 import numpy as np
+from paddleocr import PaddleOCR
 
 from docint.schemas import OCRToken
 
 
+# Initialize PaddleOCR once when the module is loaded.
+ocr = PaddleOCR(
+    lang="en",
+    use_doc_orientation_classify=False,
+    use_doc_unwarping=False,
+    use_textline_orientation=False
+)
+
+
 def run_ocr(image: np.ndarray) -> list[OCRToken]:
-    """Return tokens with bounding boxes + confidence. STUB: returns dummy tokens."""
-    return [
-        OCRToken(text="INVOICE", bbox=[10, 10, 120, 40], conf=0.98),
-        OCRToken(text="INV-1024", bbox=[10, 50, 120, 80], conf=0.95),
-        OCRToken(text="Total: 1180.00", bbox=[10, 300, 200, 330], conf=0.93),
-    ]
+    """Run PaddleOCR and return OCR tokens with bounding boxes and confidence."""
+
+    # PaddleOCR 3.x accepts an image array as input.
+    results = ocr.predict(image)
+
+    tokens: list[OCRToken] = []
+
+    for result in results:
+        rec_texts = result["rec_texts"]
+        rec_scores = result["rec_scores"]
+        rec_boxes = result["rec_boxes"]
+
+        for i in range(len(rec_texts)):
+            token = OCRToken(
+                text=rec_texts[i],
+                bbox=rec_boxes[i].tolist(),
+                conf=float(rec_scores[i])
+            )
+
+            tokens.append(token)
+
+    return tokens
