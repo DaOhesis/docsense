@@ -36,11 +36,6 @@ class Table(BaseModel):
     rows: list[list[str]]
 
 
-"""class ValidationResult(BaseModel):
-    rule: str
-    passed: bool
-    message: str = ""   """
-
 class ValidationResult(BaseModel):
     rule: str
     passed: bool
@@ -48,9 +43,6 @@ class ValidationResult(BaseModel):
 
     def __getitem__(self, item: str):
         return getattr(self, item)
-
-
-    
 
 
 class DocumentResult(BaseModel):
@@ -63,15 +55,3 @@ class DocumentResult(BaseModel):
     tables: list[Table] = []
     validation: list[ValidationResult] = []
     needs_review: bool = False
-
-"""from pydantic import BaseModel
-
-class ValidationResult(BaseModel):
-    rule: str
-    passed: bool
-    message: str = ""
-
-    def __getitem__(self, item: str):
-        return getattr(self, item)"""
-
-
