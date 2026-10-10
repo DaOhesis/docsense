@@ -15,9 +15,10 @@ RUN groupadd --gid 1001 appgroup \
 
 WORKDIR /app
 
-# Install Python dependencies (core only, NOT requirements-ml.txt)
+# Install Python dependencies (core only)
+COPY requirements/ requirements/
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements/base.txt
 
 # Copy application source
 COPY src/ ./src/

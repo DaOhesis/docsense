@@ -5,8 +5,8 @@ RUN groupadd --gid 1001 appgroup \
 
 WORKDIR /app
 
-COPY requirements-ui.txt .
-RUN pip install --no-cache-dir -r requirements-ui.txt
+COPY requirements/ requirements/
+RUN pip install --no-cache-dir -r requirements/ui.txt
 
 COPY src/docint/ui/ ./src/docint/ui/
 
