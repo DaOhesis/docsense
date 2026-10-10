@@ -27,11 +27,18 @@ class OCRWord:
         return (self.y0 + self.y1) / 2
 
 
-def tokens_to_words(tokens: List[Dict[str, Any]]) -> List[OCRWord]:
-    """Convert contract-format OCRToken dicts into OCRWord objects."""
+def tokens_to_words(tokens: List[Any]) -> List[OCRWord]:
+    """Convert contract-format OCRToken dicts or Pydantic models into OCRWord objects."""
     words = []
     for t in tokens:
-        x0, y0, x1, y1 = t["bbox"]
-        conf_0_1 = t.get("conf", 1.0)
-        words.append(OCRWord(text=t["text"], x0=x0, y0=y0, x1=x1, y1=y1, conf=conf_0_1 * 100.0))
+        if isinstance(t, dict):
+            bbox = t.get("bbox", [0.0, 0.0, 0.0, 0.0])
+            text = t.get("text", "")
+            conf_0_1 = t.get("conf", 1.0)
+        else:
+            bbox = getattr(t, "bbox", [0.0, 0.0, 0.0, 0.0])
+            text = getattr(t, "text", "")
+            conf_0_1 = getattr(t, "conf", 1.0)
+        x0, y0, x1, y1 = bbox
+        words.append(OCRWord(text=text, x0=x0, y0=y0, x1=x1, y1=y1, conf=conf_0_1 * 100.0))
     return words
