@@ -90,24 +90,6 @@ def _make_result(
         needs_review=needs_review,
     )
 
-def test_patch_correct_total_flips_needs_review_false(client, db):
-    result = _make_result(total="1200.00", subtotal="1000.00", tax="180.00")
-    save_result(db, result)
-
-    patch_payload = {
-        "fields": {
-            "invoice_no": "INV-100",
-            "date": "2026-03-15",
-            "subtotal": "1000.00",
-            "tax": "180.00",
-            "total": "1180.00"
-        }
-    }
-
-    response = client.patch(f"/documents/{result.doc_id}/fields", json=patch_payload)
-    assert response.status_code == 200
-    assert response.json()["needs_review"] is False
-
 
 @pytest.fixture(scope="session", autouse=True)
 def _init_db():
@@ -304,49 +286,7 @@ def test_patch_mismatched_total_flips_needs_review_true(client, db):
     assert failed[0]["passed"] is False
 
 
-"""
-def test_patch_correct_total_flips_needs_review_false(client, db):
-    initial_fields = {
-        "invoice_no": {"value": "INV-100", "conf": 0.99},
-        "date": {"value": "2026-03-15", "conf": 0.99},
-        "subtotal": {"value": "1000.00", "conf": 0.99},
-        "tax": {"value": "180.00", "conf": 0.99},
-        "total": {"value": "1200.00", "conf": 0.99},
-    }
-    result = _make_result(doc_type="invoice", fields=initial_fields)
-    save_result(db, result)
 
-    patch_payload = {
-        "fields": {
-            "subtotal": "1000.00",
-            "tax": "180.00",
-            "total": "1180.00"
-        }
-    }
-
-    response = client.patch(f"/documents/{result.doc_id}/fields", json=patch_payload)
-    assert response.status_code == 200
-    assert response.json()["needs_review"] is False
-
-"""
-"""
-def test_patch_correct_total_flips_needs_review_false(client, db):
-    result = _make_result(total="1200.00", subtotal="1000.00", tax="180.00")
-    save_result(db, result)
-
-    # Patch ALL three fields so validation sees high confidence (1.0) and correct math across the board
-    patch_payload = {
-        "fields": {
-            "subtotal": "1000.00",
-            "tax": "180.00",
-            "total": "1180.00"
-        }
-    }
-
-    response = client.patch(f"/documents/{result.doc_id}/fields", json=patch_payload)
-    assert response.status_code == 200
-    assert response.json()["needs_review"] is False
-"""
 
 def test_patch_correct_total_flips_needs_review_false(client, db):
     result = _make_result(total="1200.00", subtotal="1000.00", tax="180.00")
