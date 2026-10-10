@@ -18,29 +18,6 @@ def _load_fixture(filename):
 
 from docint.schemas import DocType  
 
-"""def test_valid_invoice_passes():
-    fields = {
-        "invoice_no": {"value": "INV-101", "conf": 0.95, "bbox": None},
-        "date": {"value": "2026-03-15", "conf": 0.95, "bbox": None},
-        "total": {"value": "500.00", "conf": 0.95, "bbox": None},
-        "subtotal": {"value": "450.00", "conf": 0.95, "bbox": None},
-        "tax": {"value": "50.00", "conf": 0.95, "bbox": None}
-    }
-    results, needs_review = validate("invoice", fields, [])
-
-    assert isinstance(results, list)
-    assert len(results) > 0           """
-
-"""def test_valid_invoice_passes():
-    data = _load_fixture("invoice_tokens.json")
-    fields, tables = extract("invoice", data["tokens"])
-    results, needs_review = validate("invoice", fields, tables)
-
-    assert isinstance(results, list)
-    assert len(results) > 0
-    
-  # assert needs_review is False
-  #  assert all(r["passed"] for r in results)"""
 
 
 def test_valid_invoice_passes():
