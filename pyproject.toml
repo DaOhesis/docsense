@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "docint"
+version = "0.1.0"
+description = "Smart Document & Form Intelligence System"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+    "pydantic>=2.6",
+    "sqlalchemy>=2.0",
+    "python-multipart>=0.0.9",
+    "numpy>=1.26",
+    "opencv-python-headless>=4.9",
+    "psycopg2-binary>=2.9",
+    "pytest>=8.0",
+    "httpx>=0.27",
+]
+
+[project.optional-dependencies]
+ui = [
+    "streamlit>=1.35",
+    "requests>=2.31",
+    "pymupdf>=1.24",
+]
+ml = [
+    "pytesseract>=0.3.10",
+    "paddlepaddle>=2.6",
+    "paddleocr>=2.7",
+    "scikit-learn>=1.4",
+    "torch>=2.2",
+]
+all = [
+    "docint[ui,ml]",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

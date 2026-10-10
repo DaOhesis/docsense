@@ -1,0 +1,4 @@
+# Review UI dependencies (Streamlit & Document Viewer)
+streamlit>=1.35
+requests>=2.31
+pymupdf>=1.24
