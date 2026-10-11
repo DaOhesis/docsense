@@ -47,9 +47,12 @@ def test_layout_regions():
     assert len(regions["footer"]) == 1
     assert regions["footer"][0].text == "Page 1 of 1"
 
+import pytest
 from docint.classifier.ml_classifier import classify_ml
 
 def test_ml_classifier_invoice():
+    pytest.importorskip("sklearn")
+    pytest.importorskip("joblib")
     mock_tokens = [
         OCRToken(text="Bill", bbox=[0, 0, 10, 10], conf=0.99),
         OCRToken(text="To:", bbox=[12, 0, 20, 10], conf=0.99),
@@ -86,6 +89,8 @@ def test_layout_kv_and_tables():
 
 
 def test_ml_save_and_load(tmp_path):
+    pytest.importorskip("sklearn")
+    pytest.importorskip("joblib")
     clf = MLDocumentClassifier()
     # Trigger training and save to a temporary file
     token = [OCRToken(text="Invoice Subtotal Tax", bbox=[0, 0, 10, 10], conf=0.99)]

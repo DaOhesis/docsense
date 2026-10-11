@@ -1,5 +1,13 @@
 import os
-from sklearn.metrics import classification_report, confusion_matrix
+
+try:
+    from sklearn.metrics import classification_report, confusion_matrix
+    _HAS_SKLEARN = True
+except ImportError:
+    classification_report = None
+    confusion_matrix = None
+    _HAS_SKLEARN = False
+
 from docint.classifier.doc_classifier import classify_rules as classify_baseline
 from docint.classifier.ml_classifier import classify_ml
 from docint.schemas import OCRToken
@@ -20,6 +28,10 @@ def mock_ocr(filepath: str) -> list[OCRToken]:
 
 
 def run_evaluation():
+    if not _HAS_SKLEARN:
+        print("scikit-learn is required to run evaluation reports.")
+        return
+
     samples_dir = "data/samples"
     valid_types = ["invoice", "receipt", "form", "certificate"]
     

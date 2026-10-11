@@ -1,9 +1,19 @@
 from pathlib import Path
-import joblib
-import numpy as np
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import LogisticRegression
-from sklearn.pipeline import Pipeline
+
+try:
+    import joblib
+    import numpy as np
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.pipeline import Pipeline
+    _HAS_SKLEARN = True
+except ImportError:
+    joblib = None
+    np = None
+    TfidfVectorizer = None
+    LogisticRegression = None
+    Pipeline = None
+    _HAS_SKLEARN = False
 
 from docint.schemas import DocType, OCRToken
 
@@ -22,19 +32,26 @@ DEFAULT_TRAINING_DATA = [
 class MLDocumentClassifier:
     def __init__(self, confidence_threshold: float = 0.40):
         self.confidence_threshold = confidence_threshold
-        self.model = Pipeline([
-            ("tfidf", TfidfVectorizer(lowercase=True)),
-            ("clf", LogisticRegression(C=10.0))
-        ])
+        if _HAS_SKLEARN:
+            self.model = Pipeline([
+                ("tfidf", TfidfVectorizer(lowercase=True)),
+                ("clf", LogisticRegression(C=10.0))
+            ])
+        else:
+            self.model = None
         self.is_trained = False
 
     def train(self, texts: list[str], labels: list[str]) -> None:
         """Trains the TF-IDF + Logistic Regression pipeline on labeled text."""
+        if not _HAS_SKLEARN:
+            raise RuntimeError("scikit-learn is required to train MLDocumentClassifier.")
         self.model.fit(texts, labels)
         self.is_trained = True
 
     def save(self, filepath: str | Path) -> None:
         """Saves the trained Scikit-learn pipeline to disk."""
+        if not _HAS_SKLEARN:
+            raise RuntimeError("joblib and scikit-learn are required to save MLDocumentClassifier.")
         if not self.is_trained:
             raise ValueError("Cannot save an untrained model.")
         path = Path(filepath)
@@ -43,6 +60,8 @@ class MLDocumentClassifier:
 
     def load(self, filepath: str | Path) -> None:
         """Loads a pre-trained Scikit-learn pipeline from disk."""
+        if not _HAS_SKLEARN:
+            raise RuntimeError("joblib and scikit-learn are required to load MLDocumentClassifier.")
         self.model = joblib.load(filepath)
         self.is_trained = True
 
@@ -51,7 +70,7 @@ class MLDocumentClassifier:
         Takes OCRTokens and returns (DocType, calculated_probability)
         strictly following the schemas.py data contract.
         """
-        if not tokens:
+        if not tokens or not _HAS_SKLEARN:
             return DocType.unknown, 0.0
 
         if not self.is_trained:
