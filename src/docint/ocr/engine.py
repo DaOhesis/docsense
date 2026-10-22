@@ -29,34 +29,80 @@ def _get_paddle_ocr():
     return _ocr_instance
 
 
-def run_ocr(image: np.ndarray) -> list[OCRToken]:
-    """Run PaddleOCR if available; otherwise gracefully fall back to baseline tokens."""
+def _run_paddle(image: np.ndarray) -> list[OCRToken] | None:
+    """Run PaddleOCR if installed and initialized."""
     ocr = _get_paddle_ocr()
+    if ocr is None:
+        return None
+    try:
+        results = ocr.predict(image) if hasattr(ocr, "predict") else ocr.ocr(image)
+        tokens: list[OCRToken] = []
+        for result in results:
+            if not isinstance(result, dict):
+                continue
+            rec_texts = result.get("rec_texts", [])
+            rec_scores = result.get("rec_scores", [])
+            rec_boxes = result.get("rec_boxes", [])
 
-    if ocr is not None:
-        try:
-            results = ocr.predict(image) if hasattr(ocr, "predict") else ocr.ocr(image)
-            tokens: list[OCRToken] = []
-            for result in results:
-                if not isinstance(result, dict):
-                    continue
-                rec_texts = result.get("rec_texts", [])
-                rec_scores = result.get("rec_scores", [])
-                rec_boxes = result.get("rec_boxes", [])
-
-                for i in range(len(rec_texts)):
-                    box = rec_boxes[i].tolist() if hasattr(rec_boxes[i], "tolist") else list(rec_boxes[i])
-                    tokens.append(
-                        OCRToken(
-                            text=str(rec_texts[i]),
-                            bbox=box,
-                            conf=float(rec_scores[i]),
-                        )
+            for i in range(len(rec_texts)):
+                box = rec_boxes[i].tolist() if hasattr(rec_boxes[i], "tolist") else list(rec_boxes[i])
+                tokens.append(
+                    OCRToken(
+                        text=str(rec_texts[i]),
+                        bbox=box,
+                        conf=float(rec_scores[i]),
                     )
-            if tokens:
-                return tokens
-        except Exception as e:
-            logger.warning("PaddleOCR prediction failed (%s). Falling back to baseline tokens.", e)
+                )
+        if tokens:
+            return tokens
+    except Exception as e:
+        logger.warning("PaddleOCR prediction failed (%s).", e)
+    return None
+
+
+def _run_tesseract(image: np.ndarray) -> list[OCRToken] | None:
+    """Run Tesseract OCR via pytesseract if installed."""
+    try:
+        import pytesseract
+        from pytesseract import Output
+        data = pytesseract.image_to_data(image, output_type=Output.DICT)
+        tokens: list[OCRToken] = []
+        n_boxes = len(data["text"])
+        for i in range(n_boxes):
+            text = str(data["text"][i]).strip()
+            conf_val = float(data["conf"][i])
+            if text and conf_val > 0:
+                x, y, w, h = data["left"][i], data["top"][i], data["width"][i], data["height"][i]
+                tokens.append(
+                    OCRToken(
+                        text=text,
+                        bbox=[float(x), float(y), float(x + w), float(y + h)],
+                        conf=round(conf_val / 100.0, 4),
+                    )
+                )
+        if tokens:
+            return tokens
+    except Exception as e:
+        logger.debug("Tesseract OCR not available or failed: %s", e)
+    return None
+
+
+def run_ocr(image: np.ndarray, engine: str = "auto") -> list[OCRToken]:
+    """Run OCR on image using specified engine ('paddle', 'tesseract', or 'auto').
+
+    Falls back cleanly to baseline tokens if external OCR libraries are absent.
+    """
+    engine_choice = engine.lower()
+
+    if engine_choice in ("auto", "paddle"):
+        paddle_tokens = _run_paddle(image)
+        if paddle_tokens:
+            return paddle_tokens
+
+    if engine_choice in ("auto", "tesseract"):
+        tess_tokens = _run_tesseract(image)
+        if tess_tokens:
+            return tess_tokens
 
     # Baseline fallback (ensures CI and environments without PaddlePaddle pass cleanly)
     return [

@@ -36,8 +36,24 @@ def _deskew(image: np.ndarray) -> np.ndarray:
         return image
 
 
-def preprocess(file_bytes: bytes, filename: str) -> np.ndarray:
-    """Decode document bytes and return a deskewed page image (H x W x 3, uint8)."""
+def enhance_image(image: np.ndarray) -> np.ndarray:
+    """Enhance document contrast and denoise for improved OCR accuracy."""
+    try:
+        # Convert to LAB color space to equalize luminance channel (CLAHE)
+        lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
+        l, a, b = cv2.split(lab)
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+        cl = clahe.apply(l)
+        limg = cv2.merge((cl, a, b))
+        enhanced = cv2.cvtColor(limg, cv2.COLOR_LAB2BGR)
+        return enhanced
+    except Exception as e:
+        logger.debug("Contrast enhancement failed: %s", e)
+        return image
+
+
+def preprocess(file_bytes: bytes, filename: str, enhance: bool = True) -> np.ndarray:
+    """Decode document bytes and return a deskewed, enhanced page image (H x W x 3, uint8)."""
     if not file_bytes:
         return np.zeros((100, 100, 3), dtype=np.uint8)
 
@@ -49,4 +65,7 @@ def preprocess(file_bytes: bytes, filename: str) -> np.ndarray:
         logger.debug("cv2.imdecode returned None for %s; using blank canvas fallback", filename)
         return np.zeros((100, 100, 3), dtype=np.uint8)
 
-    return _deskew(image)
+    deskewed = _deskew(image)
+    if enhance:
+        return enhance_image(deskewed)
+    return deskewed
