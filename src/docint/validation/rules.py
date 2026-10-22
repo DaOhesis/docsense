@@ -164,9 +164,9 @@ def validate(doc_type=None, fields=None, line_items=None):
     # 1. Required fields check
     required_map = {
         "invoice": ["invoice_no", "date", "total"],
-        "receipt": ["receipt_no", "date", "total"],
-        "form": ["name", "date_of_birth"],
-        "certificate": ["certificate_id", "awarded_to", "date"]
+        "receipt": ["total", "date"],
+        "form": ["date"],
+        "certificate": ["date"],
     }
 
     reqs = required_map.get(doc_type, [])
@@ -234,9 +234,14 @@ def validate(doc_type=None, fields=None, line_items=None):
     # Check if any rule actually failed (passed is False)
     has_failed_rule = any(not r.passed for r in results)
 
-    # Only flag low confidence if confidence is explicitly present and below 0.6
+    # Only flag low confidence on extracted fields that actually have a value
+    def has_val(field):
+        if isinstance(field, dict):
+            return field.get("value") is not None
+        return getattr(field, "value", None) is not None
+
     has_low_conf = any(
-        get_conf(f) < 0.6 for f in fields.values() if isinstance(f, (dict, object)) and f is not None
+        get_conf(f) < 0.6 for f in fields.values() if isinstance(f, (dict, object)) and f is not None and has_val(f)
     )
 
     needs_review = has_failed_rule or has_low_conf

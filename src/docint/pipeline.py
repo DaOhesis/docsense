@@ -55,7 +55,8 @@ def process_document(
 
     # 5. Rule-based Validation & Review Flagging
     t_start = time.perf_counter()
-    validation, needs_review = validate(fields)
+    dtype_val = doc_type.value if hasattr(doc_type, "value") else str(doc_type)
+    validation, needs_review = validate(dtype_val, fields, tables)
     t_validate = (time.perf_counter() - t_start) * 1000.0
 
     total_ms = (time.perf_counter() - t0) * 1000.0
