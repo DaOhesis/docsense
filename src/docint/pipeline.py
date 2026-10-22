@@ -15,7 +15,11 @@ from docint.validation.rules import validate
 logger = logging.getLogger("docint.pipeline")
 
 
-def process_document(file_bytes: bytes, filename: str) -> DocumentResult:
+def process_document(
+    file_bytes: bytes,
+    filename: str,
+    initial_tokens: list[OCRToken] | None = None,
+) -> DocumentResult:
     """Execute the full document intelligence pipeline:
 
     Upload -> Preprocess -> OCR -> Classify -> Extract -> Validate -> DocumentResult
@@ -33,7 +37,10 @@ def process_document(file_bytes: bytes, filename: str) -> DocumentResult:
 
     # 2. OCR (word/line tokenization with coordinates & confidence)
     t_start = time.perf_counter()
-    tokens = run_ocr(image)
+    if initial_tokens is not None:
+        tokens = initial_tokens
+    else:
+        tokens = run_ocr(image)
     t_ocr = (time.perf_counter() - t_start) * 1000.0
 
     # 3. Document Classification (invoice, receipt, form, certificate, unknown)

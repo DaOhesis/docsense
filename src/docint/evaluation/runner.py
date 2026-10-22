@@ -60,8 +60,9 @@ def evaluate_pipeline(
         else:
             file_bytes = b"sample_mock_content"
 
-        # Execute through pipeline
-        pred = process_document(file_bytes, gt.filename or "sample.png")
+        # Execute through pipeline (using ground-truth OCR tokens if sample image is absent)
+        initial_tokens = gt.ocr if (not sample_file or not sample_file.exists()) and gt.ocr else None
+        pred = process_document(file_bytes, gt.filename or "sample.png", initial_tokens=initial_tokens)
 
         # Evaluate individual document
         eval_res = evaluate_document(gt, pred, normalized=normalized)

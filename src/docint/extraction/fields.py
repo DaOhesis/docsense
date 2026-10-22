@@ -11,25 +11,30 @@ from ._tokens import OCRWord
 
 
 REGEX_PATTERNS: Dict[str, str] = {
-    "invoice_no": r"(?:invoice\s*(?:no\.?|number|#)\s*[:\-]?\s*)([A-Za-z0-9\-\/]+)",
-    "receipt_no": r"(?:receipt\s*(?:no\.?|number|#)\s*[:\-]?\s*)([A-Za-z0-9\-\/]+)",
-    "certificate_id": r"(?:certificate\s*(?:no\.?|id|number)\s*[:\-]?\s*)([A-Za-z0-9\-\/]+)",
+    "invoice_no": r"(?:\b(?:invoice\s*(?:no\b\.?|number\b|#)\s*[:\-]?\s*)([A-Za-z0-9\-\/]+)|\b(INV-[A-Za-z0-9\-\/]+)\b)",
+    "receipt_no": r"\b(?:receipt\s*(?:no\b\.?|number\b|#)\s*[:\-]?\s*)([A-Za-z0-9\-\/]+)",
+    "certificate_id": r"\b(?:certificate\s*(?:no\b\.?|id\b|number\b|#)\s*[:\-]?\s*)([A-Za-z0-9\-\/]+)",
     "date": r"\b(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}|\d{4}[\/\-\.]\d{1,2}[\/\-\.]\d{1,2})\b",
-    "total": r"(?:grand\s*total|total\s*amount|amount\s*due|total)\s*[:\-]?\s*(?:rs\.?|inr|\$|₹)?\s*([\d,]+\.\d{2}|[\d,]+)",
+    "subtotal": r"(?:sub\s*total|subtotal)\s*[:\-]?\s*(?:rs\.?|inr|\$|₹)?\s*([\d,]+\.\d{2}|[\d,]+)",
+    "tax": r"(?:tax|vat|gst)\s*[:\-]?\s*(?:rs\.?|inr|\$|₹)?\s*([\d,]+\.\d{2}|[\d,]+)",
+    "total": r"(?:grand\s*total|total\s*amount|amount\s*due|\btotal)\s*[:\-]?\s*(?:rs\.?|inr|\$|₹)?\s*([\d,]+\.\d{2}|[\d,]+)",
     "gstin": r"\b(\d{2}[A-Z]{5}\d{4}[A-Z]{1}\d[Z]{1}[A-Z\d]{1})\b",
     "pan": r"\b([A-Z]{5}\d{4}[A-Z])\b",
     "email": r"([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})",
     "phone": r"(?:\+?\d{1,3}[-.\s]?)?(\d{10})",
+    "issuer": r"(?:issued\s*by|issuer)\s*[:\-]?\s*([A-Za-z0-9\s.,&'\-]+?)(?:\s+(?:date|total|invoice|receipt)|\s*$)",
+    "payment_method": r"(?:payment\s*(?:method)?\s*[:\-]?\s*|(?:paid\s*(?:by|with)|via)\s*[:\-]?\s*)([A-Za-z0-9\s]+?)(?:\s+(?:date|total|subtotal|tax|thank)|\s*$)",
 }
 
 
 LABEL_FIELD_MAP: Dict[str, str] = {
     "vendor name": "vendor",
+    "vendor": "vendor",
     "bill to": "customer",
     "customer name": "customer",
     "applicant name": "applicant_name",
     "name": "name",
-    "issued by": "issued_by",
+    "issued by": "issuer",
     "awarded to": "awarded_to",
     "date of birth": "date_of_birth",
     "address": "address",
@@ -44,7 +49,8 @@ def _extract_by_regex(full_text: str) -> Dict[str, Optional[str]]:
     for field_name, pattern in REGEX_PATTERNS.items():
         match = re.search(pattern, text_lower, flags=re.IGNORECASE)
         if match:
-            start, end = match.span(1)
+            group_idx = match.lastindex if match.lastindex is not None else 1
+            start, end = match.span(group_idx)
             results[field_name] = full_text[start:end]
         else:
             results[field_name] = None
@@ -79,21 +85,91 @@ def _extract_by_label_anchor(words: List[OCRWord]) -> Dict[str, Optional[str]]:
         line_text = " ".join(w.text for w in line).lower()
         for label, field_name in LABEL_FIELD_MAP.items():
             if label in line_text and results[field_name] is None:
-                label_words = label.split()
-                for i in range(len(line) - len(label_words) + 1):
-                    window = " ".join(w.text.lower() for w in line[i:i + len(label_words)])
-                    if window == label or label in window:
-                        remainder = [w for w in line[i + len(label_words):] if w.text not in (":", "-")]
+                # 1. Single token prefix check (e.g. "Vendor: ACME Traders")
+                matched = False
+                for i, w in enumerate(line):
+                    w_lower = w.text.lower()
+                    if w_lower.startswith(label + ":") or w_lower.startswith(label + " -"):
+                        val_part = re.sub(r"^" + re.escape(label) + r"[:\-]\s*", "", w.text, flags=re.IGNORECASE).strip()
+                        following = [lw for lw in line[i + 1:] if lw.text not in (":", "-")]
+                        full_val = (val_part + " " + " ".join(lw.text for lw in following)).strip()
+                        if full_val:
+                            results[field_name] = full_val
+                            matched = True
+                            break
+                    elif w_lower.rstrip(":-") == label:
+                        remainder = [lw for lw in line[i + 1:] if lw.text not in (":", "-")]
                         if remainder:
-                            results[field_name] = " ".join(w.text for w in remainder)
-                        break
+                            results[field_name] = " ".join(lw.text for lw in remainder)
+                            matched = True
+                            break
+                # 2. Multi-word label window check (e.g. ["Awarded", "to:"])
+                if not matched:
+                    lbl_tokens = label.split()
+                    n = len(lbl_tokens)
+                    for i in range(len(line) - n + 1):
+                        window_text = " ".join(w.text.lower().rstrip(":-") for w in line[i:i + n])
+                        if window_text == label:
+                            remainder = [lw for lw in line[i + n:] if lw.text not in (":", "-")]
+                            if remainder:
+                                results[field_name] = " ".join(lw.text for lw in remainder)
+                                break
     return results
 
 
 def extract_fields(full_text: str, words: List[OCRWord]) -> Dict[str, Optional[str]]:
     """Combine regex + label-anchor extraction into one field dictionary."""
-    fields = {}
-    fields.update(_extract_by_regex(full_text))
-    fields.update(_extract_by_label_anchor(words))
+    fields = _extract_by_regex(full_text)
+    for k, v in _extract_by_label_anchor(words).items():
+        if v is not None or k not in fields:
+            fields[k] = v
+
+    # Synchronize issued_by with issuer if present
+    if fields.get("issuer"):
+        fields["issued_by"] = fields["issuer"]
+
+    # Positional heuristics for title and vendor/merchant when no explicit label exists
+    lines = _line_up_words(words)
+    if lines:
+        first_line_text = " ".join(w.text for w in lines[0]).strip()
+        # If top line is a document title (e.g. CERTIFICATE OF..., PATIENT INTAKE FORM...)
+        if any(keyword in first_line_text.lower() for keyword in ("certificate", "form", "checklist")):
+            if not fields.get("title"):
+                # Title-case for clean representation
+                fields["title"] = first_line_text.title()
+
+        # If top line is an organization/vendor/merchant (e.g. Apex Industrial Supplies, Central Supermarket)
+        # and not a generic word like INVOICE or RECEIPT
+        for line in lines[:3]:
+            cand = " ".join(w.text for w in line).strip()
+            cand_lower = cand.lower()
+            cand_words = set(re.findall(r"\b[a-z]+\b", cand_lower))
+            excluded = {"invoice", "receipt", "date", "subtotal", "tax", "total"}
+            if (
+                cand
+                and not cand_lower.startswith("inv-")
+                and not cand_lower.startswith("issued by")
+                and not (cand_words & excluded)
+                and len(cand) > 3
+            ):
+                if not fields.get("vendor"):
+                    fields["vendor"] = cand
+                if not fields.get("merchant"):
+                    fields["merchant"] = cand
+                break
+
+    # If merchant was found but vendor was not (or vice versa), align them
+    if fields.get("merchant") and not fields.get("vendor"):
+        fields["vendor"] = fields["merchant"]
+    elif fields.get("vendor") and not fields.get("merchant"):
+        fields["merchant"] = fields["vendor"]
+
+    # Standalone payment method detection if no explicit label exists
+    if not fields.get("payment_method"):
+        for pm in ("visa card", "mastercard", "credit card", "debit card", "cash", "apple pay"):
+            if pm in full_text.lower():
+                fields["payment_method"] = pm.title()
+                break
+
     return fields
 

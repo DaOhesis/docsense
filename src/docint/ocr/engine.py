@@ -62,5 +62,7 @@ def run_ocr(image: np.ndarray) -> list[OCRToken]:
     return [
         OCRToken(text="INVOICE", bbox=[10.0, 10.0, 120.0, 40.0], conf=0.98),
         OCRToken(text="INV-1024", bbox=[10.0, 50.0, 120.0, 80.0], conf=0.95),
+        OCRToken(text="Subtotal: 1000.00", bbox=[10.0, 200.0, 200.0, 230.0], conf=0.94),
+        OCRToken(text="Tax: 180.00", bbox=[10.0, 250.0, 200.0, 280.0], conf=0.94),
         OCRToken(text="Total: 1180.00", bbox=[10.0, 300.0, 200.0, 330.0], conf=0.93),
     ]
