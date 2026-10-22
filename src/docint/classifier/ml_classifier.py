@@ -1,4 +1,7 @@
+import logging
 from pathlib import Path
+
+logger = logging.getLogger("docint.classifier.ml")
 
 try:
     import joblib
@@ -74,8 +77,15 @@ class MLDocumentClassifier:
             return DocType.unknown, 0.0
 
         if not self.is_trained:
-            texts, labels = zip(*DEFAULT_TRAINING_DATA)
-            self.train(list(texts), list(labels))
+            default_model_path = Path("data/models/classifier.joblib")
+            if default_model_path.exists():
+                try:
+                    self.load(default_model_path)
+                except Exception as e:
+                    logger.debug("Failed loading model from %s: %s", default_model_path, e)
+            if not self.is_trained:
+                texts, labels = zip(*DEFAULT_TRAINING_DATA)
+                self.train(list(texts), list(labels))
 
         full_text = " ".join([t.text for t in tokens])
 
