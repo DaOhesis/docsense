@@ -1,5 +1,6 @@
 """OWNER: Person A  |  Branch prefix: feature/ocr-*"""
 import logging
+import os
 from typing import Optional
 
 import numpy as np
@@ -63,8 +64,21 @@ def _run_paddle(image: np.ndarray) -> list[OCRToken] | None:
 def _run_tesseract(image: np.ndarray) -> list[OCRToken] | None:
     """Run Tesseract OCR via pytesseract if installed."""
     try:
+        import os
         import pytesseract
         from pytesseract import Output
+
+        # Auto-detect common Windows installation paths if not in PATH
+        if os.name == "nt":
+            for default_path in [
+                r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+                r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
+                os.path.expandvars(r"%LOCALAPPDATA%\Tesseract-OCR\tesseract.exe"),
+            ]:
+                if os.path.exists(default_path):
+                    pytesseract.pytesseract.tesseract_cmd = default_path
+                    break
+
         data = pytesseract.image_to_data(image, output_type=Output.DICT)
         tokens: list[OCRToken] = []
         n_boxes = len(data["text"])
@@ -92,17 +106,17 @@ def run_ocr(image: np.ndarray, engine: str = "auto") -> list[OCRToken]:
 
     Falls back cleanly to baseline tokens if external OCR libraries are absent.
     """
-    engine_choice = engine.lower()
-
-    if engine_choice in ("auto", "paddle"):
-        paddle_tokens = _run_paddle(image)
-        if paddle_tokens:
-            return paddle_tokens
+    engine_choice = os.getenv("OCR_ENGINE", engine).lower()
 
     if engine_choice in ("auto", "tesseract"):
         tess_tokens = _run_tesseract(image)
         if tess_tokens:
             return tess_tokens
+
+    if engine_choice in ("auto", "paddle"):
+        paddle_tokens = _run_paddle(image)
+        if paddle_tokens:
+            return paddle_tokens
 
     # Baseline fallback (ensures CI and environments without PaddlePaddle pass cleanly)
     return [
