@@ -11,22 +11,20 @@ def classify_rules(tokens: list[OCRToken]) -> tuple[DocType, float]:
 
     if "invoice" in full_text or "bill to" in full_text:
         return DocType.invoice, 0.8
-    elif (
-        "receipt" in full_text
-        or "total paid" in full_text
-        or "payment:" in full_text
-        or "cashier" in full_text
-        or "change due" in full_text
-        or "debit card" in full_text
-        or "credit card" in full_text
-        or "apple pay" in full_text
-        or "visa" in full_text
-        or "mastercard" in full_text
-    ):
+
+    receipt_keywords = (
+        "receipt", "recibo", "total paid", "payment:", "cashier", "change due",
+        "debit card", "credit card", "apple pay", "visa", "mastercard",
+        "fare", "cab", "taxi", "trip", "ticket", "merchant", "nif", "iva",
+        "thank you", "thanks for", "obrigado", "dinheiro", "troco",
+    )
+    if any(kw in full_text for kw in receipt_keywords):
         return DocType.receipt, 0.8
-    elif "certificate" in full_text or "certify" in full_text:
+    elif "certificate" in full_text or "certify" in full_text or "awarded to" in full_text:
         return DocType.certificate, 0.8
-    elif "form" in full_text or "signature:" in full_text or "checklist" in full_text:
+
+    is_financial = any(kw in full_text for kw in ("total", "subtotal", "tax", "amount", "price", "eur", "$", "₹"))
+    if "form" in full_text or "checklist" in full_text or ("signature:" in full_text and not is_financial):
         return DocType.form, 0.6
 
     return DocType.unknown, 0.1
