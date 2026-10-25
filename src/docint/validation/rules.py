@@ -22,9 +22,24 @@ DATE_FORMATS = ["%d/%m/%Y", "%d-%m-%Y", "%d.%m.%Y", "%Y-%m-%d", "%Y/%m/%d", "%d/
 def _parse_amount(value) -> float | None:
     if not value:
         return None
+    val_str = str(value).strip()
+    # Normalize European decimal comma (e.g. "12,20" or "1.234,56")
+    if "." in val_str and "," in val_str:
+        if val_str.rfind(",") > val_str.rfind("."):
+            val_str = val_str.replace(".", "").replace(",", ".")
+        else:
+            val_str = val_str.replace(",", "")
+    elif "," in val_str and "." not in val_str:
+        if re.search(r",\d{1,2}$", val_str):
+            val_str = val_str.replace(",", ".")
+        else:
+            val_str = val_str.replace(",", "")
     try:
-        return float(str(value).replace(",", "").strip())
-    except ValueError:
+        cleaned = re.sub(r"[^\d.\-]", "", val_str)
+        if not cleaned or cleaned in (".", "-"):
+            return None
+        return float(cleaned)
+    except (ValueError, TypeError):
         return None
 
 

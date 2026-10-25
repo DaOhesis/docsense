@@ -12,12 +12,12 @@ from ._tokens import OCRWord
 
 REGEX_PATTERNS: Dict[str, str] = {
     "invoice_no": r"(?:\b(?:invoice\s*(?:no\b\.?|number\b|#)\s*[:\-]?\s*)([A-Za-z0-9\-\/]+)|\b(INV-[A-Za-z0-9\-\/]+)\b)",
-    "receipt_no": r"\b(?:receipt\s*(?:no\b\.?|number\b|#)\s*[:\-]?\s*)([A-Za-z0-9\-\/]+)",
+    "receipt_no": r"\b(?:receipt|recibo|ticket|fatura[\/\-]recibo|bill)\s*(?:no\b\.?|number\b|#|n[º°.]?|id\b)?\s*[:\-]?\s*([A-Za-z0-9\-\/]+)",
     "certificate_id": r"\b(?:certificate\s*(?:no\b\.?|id\b|number\b|#)\s*[:\-]?\s*)([A-Za-z0-9\-\/]+)",
     "date": r"\b(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}|\d{4}[\/\-\.]\d{1,2}[\/\-\.]\d{1,2})\b",
-    "subtotal": r"(?:sub\s*total|subtotal)\s*[:\-]?\s*(?:rs\.?|inr|\$|₹)?\s*([\d,]+\.\d{2}|[\d,]+)",
-    "tax": r"(?:tax|vat|gst)\s*[:\-]?\s*(?:rs\.?|inr|\$|₹)?\s*([\d,]+\.\d{2}|[\d,]+)",
-    "total": r"(?:grand\s*total|total\s*amount|amount\s*due|\btotal)\s*[:\-]?\s*(?:rs\.?|inr|\$|₹)?\s*([\d,]+\.\d{2}|[\d,]+)",
+    "subtotal": r"(?:sub\s*total|subtotal)\s*[:\-]?\s*(?:rs\.?|inr|\$|₹|€|eur|usd)?\s*([\d,]+\.\d{2}|[\d]+,\d{2}|[\d,]+)",
+    "tax": r"(?:tax|vat|gst|iva)\s*[:\-]?\s*(?:rs\.?|inr|\$|₹|€|eur|usd)?\s*([\d,]+\.\d{2}|[\d]+,\d{2}|[\d,]+)",
+    "total": r"(?:grand\s*total|total\s*amount|amount\s*due|total\s*paid|valor\s*total|\btotal\b)\s*[:\-]?\s*(?:rs\.?|inr|\$|₹|€|eur|usd)?\s*([\d,]+\.\d{2}|[\d]+,\d{2}|[\d,]+)",
     "gstin": r"\b(\d{2}[A-Z]{5}\d{4}[A-Z]{1}\d[Z]{1}[A-Z\d]{1})\b",
     "pan": r"\b([A-Z]{5}\d{4}[A-Z])\b",
     "email": r"([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})",
@@ -51,7 +51,11 @@ def _extract_by_regex(full_text: str) -> Dict[str, Optional[str]]:
         if match:
             group_idx = match.lastindex if match.lastindex is not None else 1
             start, end = match.span(group_idx)
-            results[field_name] = full_text[start:end]
+            val = full_text[start:end].strip()
+            # Normalize European decimal comma (e.g. "12,20") to standard decimal
+            if field_name in ("subtotal", "tax", "total") and re.search(r"^\d+,\d{2}$", val):
+                val = val.replace(",", ".")
+            results[field_name] = val
         else:
             results[field_name] = None
     return results
