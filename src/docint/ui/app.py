@@ -12,6 +12,7 @@ Configuration (environment variables):
 from __future__ import annotations
 
 import io
+import json
 import os
 from typing import Any, Optional
 
@@ -121,6 +122,16 @@ def _sidebar() -> dict:
             st.session_state["selected_doc_id"] = result["doc_id"]
             st.rerun()
 
+    with st.sidebar.expander("📷 Camera Snap"):
+        cam_pic = st.camera_input("Take photo of receipt/document")
+        if cam_pic and st.button("Process Camera Snap"):
+            with st.spinner("Processing camera snap…"):
+                result = _post_file(cam_pic.read(), "camera_snap.jpg")
+            if result:
+                st.sidebar.success(f"✅ Processed: {result['doc_id'][:8]}…")
+                st.session_state["selected_doc_id"] = result["doc_id"]
+                st.rerun()
+
     # ---- Search / filter ----
     st.sidebar.header("Search & filter")
     doc_type = st.sidebar.selectbox(
@@ -143,7 +154,7 @@ def _sidebar() -> dict:
     limit = st.sidebar.slider("Results per page", 5, 50, 20)
     page = st.sidebar.number_input("Page", min_value=1, value=1, step=1)
 
-    return dict(
+    filter_state = dict(
         doc_type=None if doc_type == "(all)" else doc_type,
         needs_review=(
             None if needs_review == "(all)"
@@ -157,6 +168,27 @@ def _sidebar() -> dict:
         limit=limit,
         offset=(page - 1) * limit,
     )
+
+    # Bulk CSV export of current filter query
+    st.sidebar.divider()
+    st.sidebar.subheader("📥 Export Audit Report")
+    export_params = {k: v for k, v in filter_state.items() if v is not None}
+    export_params["limit"] = 100
+    export_params["offset"] = 0
+    search_data = _get("/search", params=export_params)
+    if search_data and search_data.get("items"):
+        import pandas as pd
+        audit_df = pd.DataFrame(search_data["items"])
+        st.sidebar.download_button(
+            label="⬇️ Download Audit CSV",
+            data=audit_df.to_csv(index=False),
+            file_name="docsense_audit_report.csv",
+            mime="text/csv",
+            key="dl_audit_report_csv",
+            use_container_width=True,
+        )
+
+    return filter_state
 
 
 # ---------------------------------------------------------------------------
@@ -181,7 +213,7 @@ def _document_list(filters: dict) -> None:
     for item in items:
         review_icon = "🔴" if item["needs_review"] else "🟢"
         amount_str = (
-            f"  •  \${item['total_amount']:.2f}" if item["total_amount"] else ""
+            f"  •  ${item['total_amount']:.2f}" if item["total_amount"] else ""
         )
         label = (
             f"{review_icon} **{item['filename']}**  "
@@ -400,6 +432,153 @@ def _review_panel(doc_id: str, doc: dict) -> None:
                     st.session_state["doc_cache"] = updated
                     st.rerun()
 
+    # ---- Export Document Data ----
+    st.divider()
+    st.subheader("📥 Export Document")
+    col_dl1, col_dl2 = st.columns(2)
+    with col_dl1:
+        doc_json = json.dumps(doc, indent=2)
+        st.download_button(
+            label="📄 Export Canonical JSON",
+            data=doc_json,
+            file_name=f"{doc_id}_result.json",
+            mime="application/json",
+            key=f"dl_json_{doc_id}",
+            use_container_width=True,
+        )
+    with col_dl2:
+        tables = doc.get("tables", [])
+        if tables and tables[0].get("headers") and tables[0].get("rows"):
+            import pandas as pd
+            table_df = pd.DataFrame(tables[0]["rows"], columns=tables[0]["headers"])
+            st.download_button(
+                label="📊 Export Line Items (CSV)",
+                data=table_df.to_csv(index=False),
+                file_name=f"{doc_id}_line_items.csv",
+                mime="text/csv",
+                key=f"dl_csv_{doc_id}",
+                use_container_width=True,
+            )
+        else:
+            st.button(
+                "📊 Export Line Items (CSV)",
+                disabled=True,
+                help="No line items detected to export.",
+                use_container_width=True,
+                key=f"dl_csv_dis_{doc_id}",
+            )
+
+
+# ---------------------------------------------------------------------------
+# Business Operations & Analytics Dashboard
+# ---------------------------------------------------------------------------
+
+def _analytics_dashboard() -> None:
+    """Render executive metrics, STP throughput, and business distribution charts."""
+    st.header("📊 Business Operations & Throughput Dashboard")
+    analytics = _get("/analytics")
+    if not analytics:
+        st.warning("Unable to fetch analytics metrics from the API.")
+        return
+
+    total = analytics.get("total_documents", 0)
+    stp_rate = analytics.get("stp_rate", 100.0)
+    needs_review = analytics.get("needs_review_count", 0)
+    stp_count = analytics.get("stp_count", 0)
+    volume = analytics.get("total_financial_volume", 0.0)
+
+    # 1. Executive KPI Cards
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric(
+            "Total Ingested Documents",
+            f"{total:,}",
+            help="Total number of documents processed through pipeline",
+        )
+    with col2:
+        st.metric(
+            "STP (Zero-Touch) Rate",
+            f"{stp_rate:.1f}%",
+            help="Straight-Through Processing: percentage of documents verified without human intervention",
+        )
+    with col3:
+        st.metric(
+            "Pending Review Queue",
+            f"{needs_review:,}",
+            delta=f"{needs_review} flagged" if needs_review > 0 else "0",
+            delta_color="inverse",
+            help="Documents requiring human review",
+        )
+    with col4:
+        st.metric(
+            "Total Financial Volume",
+            f"${volume:,.2f}",
+            help="Total monetary volume extracted across invoices and receipts",
+        )
+
+    st.divider()
+
+    # 2. Charts Row
+    col_chart1, col_chart2 = st.columns(2)
+
+    import pandas as pd
+    import altair as alt
+
+    with col_chart1:
+        st.subheader("📁 Documents by Classification Type")
+        dist = analytics.get("doc_type_distribution", {})
+        if dist:
+            df_dist = pd.DataFrame([{"Type": k.title(), "Count": v} for k, v in dist.items()])
+            chart_type = (
+                alt.Chart(df_dist)
+                .mark_bar(cornerRadius=6)
+                .encode(
+                    x=alt.X("Count:Q", title="Volume"),
+                    y=alt.Y("Type:N", sort="-x", title="Document Type"),
+                    color=alt.Color("Type:N", legend=None),
+                    tooltip=["Type", "Count"],
+                )
+                .properties(height=260)
+            )
+            st.altair_chart(chart_type, use_container_width=True)
+        else:
+            st.info("No classification data recorded.")
+
+    with col_chart2:
+        st.subheader("⚡ Automation vs. Review Breakdown")
+        df_status = pd.DataFrame([
+            {"Status": "Straight-Through (STP)", "Count": stp_count},
+            {"Status": "Needs Review", "Count": needs_review},
+        ])
+        chart_status = (
+            alt.Chart(df_status)
+            .mark_arc(innerRadius=50)
+            .encode(
+                theta=alt.Theta("Count:Q"),
+                color=alt.Color(
+                    "Status:N",
+                    scale=alt.Scale(
+                        domain=["Straight-Through (STP)", "Needs Review"],
+                        range=["#2ca02c", "#d62728"],
+                    ),
+                ),
+                tooltip=["Status", "Count"],
+            )
+            .properties(height=260)
+        )
+        st.altair_chart(chart_status, use_container_width=True)
+
+    # 3. Top Vendors Table
+    st.subheader("🏢 Top Vendors / Merchants by Ingestion Volume")
+    top_vendors = analytics.get("top_vendors", [])
+    if top_vendors:
+        df_vendors = pd.DataFrame(top_vendors)
+        df_vendors.columns = ["Vendor / Merchant", "Document Count", "Total Volume ($)"]
+        df_vendors["Total Volume ($)"] = df_vendors["Total Volume ($)"].map("${:,.2f}".format)
+        st.dataframe(df_vendors, use_container_width=True, hide_index=True)
+    else:
+        st.info("No vendor transactions recorded yet.")
+
 
 # ---------------------------------------------------------------------------
 # Main layout
@@ -410,35 +589,41 @@ def main():
 
     st.title("Smart Document & Form Intelligence")
 
-    col_list, col_detail = st.columns([1, 2], gap="large")
+    tab_review, tab_dashboard = st.tabs([
+        "📄 Document Review & Extraction",
+        "📊 Operations & Analytics Dashboard",
+    ])
 
-    with col_list:
-        st.header("Documents")
-        _document_list(filters)
+    with tab_review:
+        col_list, col_detail = st.columns([1, 2], gap="large")
 
-    selected_id = st.session_state.get("selected_doc_id")
+        with col_list:
+            st.header("Documents")
+            _document_list(filters)
 
-    with col_detail:
-        if not selected_id:
-            st.info("← Select a document from the list, or upload one using the sidebar.")
-            return
+        selected_id = st.session_state.get("selected_doc_id")
 
-        # Use cached version if we just saved, otherwise fetch fresh
-        if "doc_cache" in st.session_state:
-            doc = st.session_state.pop("doc_cache")
-        else:
-            doc = _get(f"/documents/{selected_id}")
-        if not doc:
-            return
+        with col_detail:
+            if not selected_id:
+                st.info("← Select a document from the list, or upload one using the sidebar.")
+            else:
+                # Use cached version if we just saved, otherwise fetch fresh
+                if "doc_cache" in st.session_state:
+                    doc = st.session_state.pop("doc_cache")
+                else:
+                    doc = _get(f"/documents/{selected_id}")
+                if doc:
+                    st.header(f"`{selected_id[:12]}…`  —  {doc.get('filename', '')}")
+                    left, right = st.columns([1, 1], gap="medium")
 
-        st.header(f"`{selected_id[:12]}…`  —  {doc.get('filename', '')}")
-        left, right = st.columns([1, 1], gap="medium")
+                    with left:
+                        _preview_file(selected_id, doc)
 
-        with left:
-            _preview_file(selected_id, doc)
+                    with right:
+                        _review_panel(selected_id, doc)
 
-        with right:
-            _review_panel(selected_id, doc)
+    with tab_dashboard:
+        _analytics_dashboard()
 
 
 if __name__ == "__main__":
