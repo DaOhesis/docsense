@@ -94,3 +94,16 @@ class SearchQuery(BaseModel):
         ):
             raise ValueError("min_amount must not be greater than max_amount")
         return self
+
+
+class AnalyticsResponse(BaseModel):
+    """Business operations and throughput metrics."""
+
+    total_documents: int
+    stp_count: int
+    needs_review_count: int
+    stp_rate: float
+    total_financial_volume: float
+    doc_type_distribution: dict[str, int]
+    top_vendors: list[dict[str, Any]]
+

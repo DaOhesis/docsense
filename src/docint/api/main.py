@@ -14,6 +14,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from docint.api.models import (
+    AnalyticsResponse,
     PatchFieldsRequest,
     SearchItem,
     SearchResponse,
@@ -61,11 +62,49 @@ app = FastAPI(
 
 
 # ---------------------------------------------------------------------------
-# Health
+# Health & Analytics
 # ---------------------------------------------------------------------------
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.get("/analytics", response_model=AnalyticsResponse)
+def get_analytics(db: Session = Depends(get_db)):
+    """Return executive business metrics, STP rates, and document volume breakdown."""
+    total = db.scalar(select(func.count(DocumentRecord.id))) or 0
+    needs_review = db.scalar(select(func.count(DocumentRecord.id)).where(DocumentRecord.needs_review == True)) or 0
+    stp = total - needs_review
+    stp_rate = round((stp / total * 100.0), 2) if total > 0 else 100.0
+
+    vol = db.scalar(select(func.sum(DocumentRecord.total_amount))) or 0.0
+
+    type_counts_raw = db.execute(
+        select(DocumentRecord.doc_type, func.count(DocumentRecord.id)).group_by(DocumentRecord.doc_type)
+    ).all()
+    type_dist = {str(dtype): count for dtype, count in type_counts_raw}
+
+    top_vendors_raw = db.execute(
+        select(DocumentRecord.vendor, func.count(DocumentRecord.id), func.sum(DocumentRecord.total_amount))
+        .where(DocumentRecord.vendor.isnot(None))
+        .group_by(DocumentRecord.vendor)
+        .order_by(func.count(DocumentRecord.id).desc())
+        .limit(5)
+    ).all()
+    top_vendors = [
+        {"vendor": row[0], "count": row[1], "volume": float(row[2] or 0.0)}
+        for row in top_vendors_raw if row[0]
+    ]
+
+    return AnalyticsResponse(
+        total_documents=total,
+        stp_count=stp,
+        needs_review_count=needs_review,
+        stp_rate=stp_rate,
+        total_financial_volume=round(float(vol), 2),
+        doc_type_distribution=type_dist,
+        top_vendors=top_vendors,
+    )
 
 
 # ---------------------------------------------------------------------------

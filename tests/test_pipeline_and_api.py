@@ -581,10 +581,17 @@ def test_api_upload_get_search(client):
     assert "items" in data
     assert len(data["items"]) >= 1
 
-    assert client.get("/documents/nope").status_code == 404 
+    assert client.get("/documents/nope").status_code == 404
 
 
-
-
+def test_analytics_endpoint(client):
+    r = client.get("/analytics")
+    assert r.status_code == 200
+    data = r.json()
+    assert "total_documents" in data
+    assert "stp_rate" in data
+    assert "doc_type_distribution" in data
+    assert "total_financial_volume" in data
+    assert isinstance(data["stp_rate"], float)
 
 
