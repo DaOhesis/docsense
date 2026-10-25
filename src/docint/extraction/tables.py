@@ -43,8 +43,29 @@ def extract_table(words: List[OCRWord]) -> List[Dict[str, str]]:
         return []
 
     header_line = lines[header_idx]
-    column_names = [w.text.strip(":").lower() for w in header_line]
-    column_bounds = [w.x0 for w in header_line]
+
+    # Merge closely-spaced header words that form compound phrases
+    # (e.g. "unit" + "price", "item" + "description", "sr" + "no")
+    merged_headers: List[str] = []
+    column_bounds: List[float] = []
+    skip = False
+    for i, w in enumerate(header_line):
+        if skip:
+            skip = False
+            continue
+        text_w = w.text.strip(":").lower()
+        if i + 1 < len(header_line):
+            next_w = header_line[i + 1]
+            pair = f"{text_w} {next_w.text.strip(':').lower()}"
+            if pair in ("unit price", "item description", "item name", "sr no", "sl no", "tax rate", "total amount"):
+                merged_headers.append(pair)
+                column_bounds.append(w.x0)
+                skip = True
+                continue
+        merged_headers.append(text_w)
+        column_bounds.append(w.x0)
+
+    column_names = merged_headers
 
     rows: List[Dict[str, str]] = []
     for line in lines[header_idx + 1:]:
@@ -61,5 +82,16 @@ def extract_table(words: List[OCRWord]) -> List[Dict[str, str]]:
         row = {name: " ".join(vals).strip() for name, vals in row_cells.items()}
         if any(v for v in row.values()):
             rows.append(row)
+
+    # Filter out columns that are completely empty across ALL extracted rows
+    if rows:
+        non_empty_cols = [
+            col for col in column_names
+            if any(row.get(col, "").strip() for row in rows)
+        ]
+        if non_empty_cols:
+            rows = [{col: row.get(col, "") for col in non_empty_cols} for row in rows]
+        else:
+            return []
 
     return rows
