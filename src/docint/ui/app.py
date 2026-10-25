@@ -228,35 +228,109 @@ def _preview_file(doc_id: str, doc: dict) -> None:
         st.info("File preview not available for this type.")
 
 
+RELEVANT_FIELDS: dict[str, list[str]] = {
+    "invoice": ["invoice_no", "date", "vendor", "customer", "subtotal", "tax", "total", "gstin", "payment_method"],
+    "receipt": ["receipt_no", "date", "merchant", "vendor", "total", "subtotal", "tax", "payment_method"],
+    "certificate": ["certificate_id", "title", "awarded_to", "issuer", "date"],
+    "form": ["name", "applicant_name", "date_of_birth", "date", "address", "phone", "email"],
+}
+
 # ---------------------------------------------------------------------------
 # Review & correction panel (right column)
 # ---------------------------------------------------------------------------
 
 def _review_panel(doc_id: str, doc: dict) -> None:
     """Render editable fields, validation, tables, and save buttons."""
-    st.subheader("🔍 Extracted fields")
+    doc_type = doc.get("doc_type", "unknown")
+    doc_type_conf = doc.get("doc_type_conf", 0.0)
+    needs_review = doc.get("needs_review", False)
+
+    # Document Header Badge
+    col_type, col_status = st.columns([1, 1])
+    with col_type:
+        st.markdown(f"**Document Type:** `{doc_type}` ({doc_type_conf:.0%})")
+    with col_status:
+        if needs_review:
+            st.warning("⚠️ Review Required")
+        else:
+            st.success("✅ Fully Verified (STP)")
+
+    st.subheader("🔍 Extracted Fields")
 
     fields = doc.get("fields", {})
     original_values: dict[str, str] = {
         name: (info.get("value") or "") for name, info in fields.items()
     }
 
-    edited: dict[str, str] = {}
+    # Separate fields into primary (relevant or non-empty) vs secondary (empty & irrelevant)
+    expected_for_type = set(RELEVANT_FIELDS.get(doc_type, []))
+    primary_field_names: list[str] = []
+    secondary_field_names: list[str] = []
+
+    # If vendor and merchant are identical, we only show vendor in primary to avoid clutter
+    skip_merchant_duplicate = (
+        fields.get("merchant", {}).get("value")
+        and fields.get("vendor", {}).get("value") == fields.get("merchant", {}).get("value")
+    )
+
     for name, info in fields.items():
+        if skip_merchant_duplicate and name == "merchant":
+            continue
+        val = (info.get("value") or "").strip()
+        if (name in expected_for_type) or val:
+            primary_field_names.append(name)
+        else:
+            secondary_field_names.append(name)
+
+    # Sort primary fields: expected first, then others
+    primary_field_names.sort(key=lambda n: (0 if n in expected_for_type else 1, n))
+
+    edited: dict[str, str] = {}
+
+    def _render_field_widget(name: str, col_container):
+        info = fields[name]
         conf = info.get("conf", 0.0)
         val = info.get("value") or ""
-        low = conf < LOW_CONF_THRESHOLD
+        low = conf < LOW_CONF_THRESHOLD and bool(val)
+        missing = not bool(val)
 
-        label_style = "⚠️" if low else "✅"
-        label = f"{label_style} **{name}** (conf: {conf:.0%})"
-        st.markdown(label)
-        new_val = st.text_input(
-            f"Edit {name}",
-            value=val,
-            key=f"field_{doc_id}_{name}",
-            label_visibility="collapsed",
-        )
-        edited[name] = new_val
+        if missing:
+            badge = "⭕"
+            conf_str = "empty"
+        elif low:
+            badge = "⚠️"
+            conf_str = f"conf: {conf:.0%}"
+        else:
+            badge = "✅"
+            conf_str = f"conf: {conf:.0%}"
+
+        with col_container:
+            st.markdown(f"{badge} **{name}** &nbsp; <small style='color: gray'>({conf_str})</small>", unsafe_allow_html=True)
+            new_val = st.text_input(
+                f"Edit {name}",
+                value=val,
+                key=f"field_{doc_id}_{name}",
+                label_visibility="collapsed",
+            )
+            edited[name] = new_val
+
+    # Render primary fields in a clean 2-column grid
+    cols = st.columns(2)
+    for i, name in enumerate(primary_field_names):
+        col_container = cols[i % 2]
+        _render_field_widget(name, col_container)
+
+    # Render secondary / unused fields in a collapsible expander
+    if secondary_field_names:
+        with st.expander(f"➕ Other Document Fields ({len(secondary_field_names)} empty)"):
+            exp_cols = st.columns(2)
+            for j, name in enumerate(secondary_field_names):
+                col_container = exp_cols[j % 2]
+                _render_field_widget(name, col_container)
+
+    # Preserve any un-rendered merchant value if it was hidden as duplicate
+    if skip_merchant_duplicate and "merchant" not in edited:
+        edited["merchant"] = edited.get("vendor", original_values.get("merchant", ""))
 
     # ---- Validation results ----
     st.subheader("🧪 Validation")
@@ -268,25 +342,29 @@ def _review_panel(doc_id: str, doc: dict) -> None:
         msg = f" — {result['message']}" if result.get("message") else ""
         st.markdown(f"{icon} `{result['rule']}`{msg}")
 
-    # ---- Review status ----
-    needs_review = doc.get("needs_review", False)
-    if needs_review:
-        st.warning("⚠️ This document needs human review.")
-    else:
-        st.success("✅ Document is verified.")
-
     # ---- Line items ----
     tables = doc.get("tables", [])
     if tables:
         st.subheader("📋 Line items")
+        has_visible_table = False
         for i, table in enumerate(tables):
-            st.caption(f"Table {i + 1}")
             headers = table.get("headers", [])
             rows = table.get("rows", [])
             if headers and rows:
                 import pandas as pd
                 df = pd.DataFrame(rows, columns=headers)
-                st.dataframe(df, use_container_width=True, hide_index=True)
+                # Drop columns that are completely empty / whitespace
+                non_empty_cols = [c for c in df.columns if df[c].astype(str).str.strip().any()]
+                if non_empty_cols:
+                    df = df[non_empty_cols]
+                    st.caption(f"Table {i + 1}")
+                    st.dataframe(df, use_container_width=True, hide_index=True)
+                    has_visible_table = True
+        if not has_visible_table:
+            st.caption("No structured table rows extracted.")
+    else:
+        if doc_type in ("invoice", "receipt"):
+            st.caption("📋 No tabular line items detected for this document.")
 
     # ---- Action buttons ----
     st.divider()
@@ -311,7 +389,6 @@ def _review_panel(doc_id: str, doc: dict) -> None:
 
     with col_confirm:
         if st.button("✅ Confirm all (mark as human-verified)"):
-            # Send all fields back as-is – this sets conf=1.0 for each
             all_fields = {n: v for n, v in edited.items()}
             if not all_fields:
                 st.info("No fields to confirm.")
